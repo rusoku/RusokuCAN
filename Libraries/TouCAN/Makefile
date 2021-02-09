@@ -1,5 +1,5 @@
 #
-#	CAN Interface API, Version 3 (for Rusoku TouCAN USB Interfaces)
+#	TouCAN - macOS User-Space Driver for Rusoku TouCAN USB Interfaces
 #
 #	Copyright (C) 2020  Uwe Vogt, UV Software, Berlin (info@mac-can.com)
 #
@@ -23,12 +23,20 @@ current_OS := $(patsubst CYGWIN%,Cygwin,$(current_OS))
 current_OS := $(patsubst MINGW%,MinGW,$(current_OS))
 current_OS := $(patsubst MSYS%,MinGW,$(current_OS))
 
+##############################################################################
 
-LIBRARY = libUVCANTOU
+LIBRARY = libTouCAN
 
-VERSION = 0.1
+MAJOR = 0
+MINOR = 1
+PATCH = 1
 
+VERSION = $(MAJOR).$(MINOR).$(PATCH)
 TARGET  = $(LIBRARY).$(VERSION).dylib
+
+INSTALL_NAME = $(TARGET)
+CURRENT_VERSION = $(VERSION)
+COMPATIBILITY_VERSION = $(MAJOR).$(MINOR).0
 
 INSTALL = /usr/local/lib
 
@@ -41,15 +49,17 @@ CANAPI_DIR = $(HOME_DIR)/Sources/CANAPI
 MACCAN_DIR = $(HOME_DIR)/Sources/MacCAN_Core
 TOUCAN_DIR = $(HOME_DIR)/Sources/TouCAN_Driver
 
-OBJECTS = $(OUTDIR)/can_api.o $(OUTDIR)/can_btr.o $(OUTDIR)/can_msg.o \
+##############################################################################
+
+OBJECTS = $(OUTDIR)/TouCAN.o $(OUTDIR)/TouCAN_USB.o \
 	$(OUTDIR)/MacCAN.o $(OUTDIR)/MacCAN_Debug.o $(OUTDIR)/MacCAN_Devices.o \
 	$(OUTDIR)/MacCAN_IOUsbKit.o $(OUTDIR)/MacCAN_IOUsbPipe.o \
-	$(OUTDIR)/TouCAN.o $(OUTDIR)/TouCAN_USB.o
+	$(OUTDIR)/can_btr.o
 
 DEFINES = -DOPTION_CAN_2_0_ONLY=0 \
-	-DOPTION_CANAPI_TOUCAN_DYLIB=1 \
+	-DOPTION_TOUCAN_DYLIB=1 \
 	-DOPTION_CANAPI_DRIVER=1 \
-	-DOPTION_CANAPI_RETVALS=1 \
+	-DOPTION_CANAPI_RETVALS=0 \
 	-DOPTION_CANAPI_COMPANIONS=1 \
 	-DOPTION_CANAPI_DEBUG_LEVEL=0 \
 	-DOPTION_MACCAN_DEBUG_LEVEL=0 \
@@ -71,7 +81,13 @@ CXXFLAGS += -g -Wall -Wextra -pthread \
 
 LIBRARIES =
 
-LDFLAGS  += -nostartfiles -dynamiclib -Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation
+LDFLAGS  += -nostartfiles -dynamiclib -fvisibility=hidden \
+	-Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation \
+	-install_name $(INSTALL_NAME) \
+	-current_version $(CURRENT_VERSION) \
+	-compatibility_version $(COMPATIBILITY_VERSION)
+
+##############################################################################
 
 CXX = g++
 CC = gcc
@@ -80,7 +96,6 @@ RM = rm -f
 CP = cp -f
 
 OUTDIR = .objects
-
 
 .PHONY: info outdir
 
@@ -105,13 +120,17 @@ ifeq ($(current_OS),Darwin)
 	$(RM) $(INSTALL)/$(LIBRARY).dylib; ln -s $(INSTALL)/$(TARGET) $(INSTALL)/$(LIBRARY).dylib
 endif
 	@echo "Copying header files..."
-	$(CP) $(HOME_DIR)/Sources/CANAPI/can_api.h $(INCLUDE)
+	$(CP) $(HOME_DIR)/Sources/TouCAN_Driver/TouCAN.h $(INCLUDE)
+	$(CP) $(HOME_DIR)/Sources/MacCAN_Core/MacCAN.h $(INCLUDE)
 	$(CP) $(HOME_DIR)/Sources/CANAPI/CANAPI_Types.h $(INCLUDE)
-	$(CP) $(HOME_DIR)/Sources/CANAPI/CANAPI_Defines.h $(INCLUDE)
 
+##############################################################################
 
-$(OUTDIR)/can_api.o: ./can_api.cpp
+$(OUTDIR)/TouCAN.o: $(SOURCE_DIR)/TouCAN.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/TouCAN_USB.o: $(TOUCAN_DIR)/TouCAN_USB.c
+	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/MacCAN.o: $(MACCAN_DIR)/MacCAN.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
@@ -131,16 +150,10 @@ $(OUTDIR)/MacCAN_IOUsbPipe.o: $(MACCAN_DIR)/MacCAN_IOUsbPipe.c
 $(OUTDIR)/can_btr.o: $(CANAPI_DIR)/can_btr.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
-$(OUTDIR)/can_msg.o: $(CANAPI_DIR)/can_msg.c
-	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
-
-$(OUTDIR)/TouCAN.o: $(TOUCAN_DIR)/TouCAN.cpp
-	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
-
-$(OUTDIR)/TouCAN_USB.o: $(TOUCAN_DIR)/TouCAN_USB.c
-	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
-
+##############################################################################
 
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBRARIES)
 	@echo "Target '"$@"' successfully build"
+
+##############################################################################

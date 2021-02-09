@@ -23,39 +23,37 @@ current_OS := $(patsubst CYGWIN%,Cygwin,$(current_OS))
 current_OS := $(patsubst MINGW%,MinGW,$(current_OS))
 current_OS := $(patsubst MSYS%,MinGW,$(current_OS))
 
+##############################################################################
 
-LIBRARY = libTouCAN
+TARGET  = TouCAN
 
-VERSION = 0.1
+INSTALL = ~/bin
 
-TARGET  = $(LIBRARY).$(VERSION).dylib
-
-INSTALL = /usr/local/lib
-
-INCLUDE = /usr/local/include
-
-HOME_DIR = ../..
+HOME_DIR = ..
+MAIN_DIR = ./Sources
 
 SOURCE_DIR = $(HOME_DIR)/Sources
 CANAPI_DIR = $(HOME_DIR)/Sources/CANAPI
 MACCAN_DIR = $(HOME_DIR)/Sources/MacCAN_Core
 TOUCAN_DIR = $(HOME_DIR)/Sources/TouCAN_Driver
 
-OBJECTS = $(OUTDIR)/TouCAN.o $(OUTDIR)/TouCAN_USB.o \
-	$(OUTDIR)/MacCAN.o $(OUTDIR)/MacCAN_Debug.o $(OUTDIR)/MacCAN_Devices.o \
-	$(OUTDIR)/MacCAN_IOUsbKit.o $(OUTDIR)/MacCAN_IOUsbPipe.o \
-	$(OUTDIR)/can_btr.o
+##############################################################################
 
-DEFINES = -DOPTION_CAN_2_0_ONLY=0 \
-	-DOPTION_TOUCAN_DYLIB=1 \
+OBJECTS = $(OUTDIR)/MacCAN.o $(OUTDIR)/MacCAN_Debug.o $(OUTDIR)/MacCAN_Devices.o \
+	$(OUTDIR)/MacCAN_IOUsbKit.o $(OUTDIR)/MacCAN_IOUsbPipe.o \
+	$(OUTDIR)/TouCAN.o $(OUTDIR)/TouCAN_USB.o \
+	$(OUTDIR)/main.o $(OUTDIR)/can_btr.o
+
+DEFINES = -DOPTION_CAN_2_0_ONLY=1 \
 	-DOPTION_CANAPI_DRIVER=1 \
-	-DOPTION_CANAPI_RETVALS=0 \
+	-DOPTION_CANAPI_RETVALS=1 \
 	-DOPTION_CANAPI_COMPANIONS=1 \
 	-DOPTION_CANAPI_DEBUG_LEVEL=0 \
 	-DOPTION_MACCAN_DEBUG_LEVEL=0 \
 	-DOPTION_MACCAN_INSTRUMENTATION=0
 
-HEADERS = -I$(SOURCE_DIR) \
+INCLUDE = -I$(MAIN_DIR) \
+	-I$(SOURCE_DIR) \
 	-I$(CANAPI_DIR) \
 	-I$(MACCAN_DIR) \
 	-I$(TOUCAN_DIR)
@@ -63,15 +61,17 @@ HEADERS = -I$(SOURCE_DIR) \
 CFLAGS += -O2 -Wall -Wno-parentheses \
 	-fno-strict-aliasing \
 	$(DEFINES) \
-	$(HEADERS)
+	$(INCLUDE)
 
 CXXFLAGS += -g -Wall -Wextra -pthread \
 	$(DEFINES) \
-	$(HEADERS)
+	$(INCLUDE)
 
 LIBRARIES =
 
-LDFLAGS  += -nostartfiles -dynamiclib -Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation
+LDFLAGS  += -Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation
+
+##############################################################################
 
 CXX = g++
 CC = gcc
@@ -81,9 +81,7 @@ CP = cp -f
 
 OUTDIR = .objects
 
-
 .PHONY: info outdir
-
 
 all: info outdir $(TARGET)
 
@@ -99,22 +97,12 @@ clean:
 	$(RM) $(TARGET) $(OUTDIR)/*.o $(OUTDIR)/*.d
 
 install:
-	@echo "Copying library file..."
 	$(CP) $(TARGET) $(INSTALL)
-ifeq ($(current_OS),Darwin)
-	$(RM) $(INSTALL)/$(LIBRARY).dylib; ln -s $(INSTALL)/$(TARGET) $(INSTALL)/$(LIBRARY).dylib
-endif
-	@echo "Copying header files..."
-	$(CP) $(HOME_DIR)/Sources/TouCAN_Driver/TouCAN.h $(INCLUDE)
-	$(CP) $(HOME_DIR)/Sources/MacCAN_Core/MacCAN.h $(INCLUDE)
-	$(CP) $(HOME_DIR)/Sources/CANAPI/CANAPI_Types.h $(INCLUDE)
 
+##############################################################################
 
-$(OUTDIR)/TouCAN.o: $(TOUCAN_DIR)/TouCAN.cpp
+$(OUTDIR)/main.o: $(MAIN_DIR)/main.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
-
-$(OUTDIR)/TouCAN_USB.o: $(TOUCAN_DIR)/TouCAN_USB.c
-	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/MacCAN.o: $(MACCAN_DIR)/MacCAN.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
@@ -131,10 +119,19 @@ $(OUTDIR)/MacCAN_IOUsbKit.o: $(MACCAN_DIR)/MacCAN_IOUsbKit.c
 $(OUTDIR)/MacCAN_IOUsbPipe.o: $(MACCAN_DIR)/MacCAN_IOUsbPipe.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
+$(OUTDIR)/TouCAN.o: $(SOURCE_DIR)/TouCAN.cpp
+	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/TouCAN_USB.o: $(TOUCAN_DIR)/TouCAN_USB.c
+	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
+
 $(OUTDIR)/can_btr.o: $(CANAPI_DIR)/can_btr.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
+##############################################################################
 
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBRARIES)
 	@echo "Target '"$@"' successfully build"
+
+##############################################################################

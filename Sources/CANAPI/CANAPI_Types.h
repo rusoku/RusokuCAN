@@ -20,11 +20,11 @@
  */
 /** @file        CANAPI_Types.h
  *
- *  @brief       CAN API V3 for generic CAN Interfaces (Data Types and Defines)
+ *  @brief       CAN API V3 for generic CAN Interfaces - Data Types and Defines
  *
  *  @author      $Author: eris $
  *
- *  @version     $Rev: 902 $
+ *  @version     $Rev: 915 $
  *
  *  @addtogroup  can_api
  *  @{
@@ -48,6 +48,14 @@ extern "C" {
 /*  -----------  options  ------------------------------------------------
  */
 
+/** @note  Set define OPTION_CANAPI_LIBRARY to a non-zero value to compile
+ *         the master loader library (e.g. in the build environment). Or optionally
+ *         set define OPTION_CANAPI_DRIVER to a non-zero value to compile
+ *         a driver library.
+ */
+/** @note  Set define OPTION_CAN_2_0_ONLY to a non-zero value to compile
+ *         with CAN 2.0 frame format only (e.g. in the build environment).
+ */
 
 /*  -----------  defines  ------------------------------------------------
  */
