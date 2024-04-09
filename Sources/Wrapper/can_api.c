@@ -22,22 +22,11 @@
 /** @addtogroup  can_api
  *  @{
  */
-#include "build_no.h"
-#define VERSION_MAJOR    0
-#define VERSION_MINOR    3
-#define VERSION_PATCH    0
-#define VERSION_BUILD    BUILD_NO
-#if (VERSION_PATCH == 0)
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) " (" TOSTRING(BUILD_NO) ")"
-#else
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
-#endif
 #if defined(__APPLE__)
-#define PLATFORM        "macOS"
+#define PLATFORM  "macOS"
 #else
 #error Platform not supported
 #endif
-static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Version " VERSION_STRING;
 
 /*  -----------  includes  -----------------------------------------------
  */
@@ -46,6 +35,7 @@ static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Vers
 #include "can_btr.h"
 
 #include "TouCAN_Driver.h"
+#include "Version.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -107,6 +97,8 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte);
 
 /*  -----------  variables  ----------------------------------------------
  */
+static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Version " VERSION_STRING;
+
 EXPORT
 can_board_t can_boards[8+1] = {  // list of supported CAN Interfaces
     // TODO: rework this (either by an own can_defs.h or by a json file)

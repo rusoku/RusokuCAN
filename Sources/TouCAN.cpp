@@ -19,24 +19,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with MacCAN-TouCAN.  If not, see <https://www.gnu.org/licenses/>.
 //
-#include "build_no.h"
-#define VERSION_MAJOR    0
-#define VERSION_MINOR    3
-#define VERSION_PATCH    0
-#define VERSION_BUILD    BUILD_NO
-#if (VERSION_PATCH == 0)
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) " (" TOSTRING(BUILD_NO) ")"
-#else
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
-#endif
-#if defined(__APPLE__)
-#define PLATFORM        "macOS"
-#else
-#error Platform not supported
-#endif
-static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Version " VERSION_STRING;
-
 #include "TouCAN.h"
+#include "Version.h"
+
 #include "can_defs.h"
 #include "can_api.h"
 #include "can_btr.h"
@@ -46,6 +31,25 @@ static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Vers
 #include <errno.h>
 #include <assert.h>
 #include <limits.h>
+
+#if defined(__APPLE__)
+#define PLATFORM  "macOS"
+#else
+#error Platform not supported
+#endif
+#ifndef _MSC_VER
+#define STRCPY_S(dest,size,src)         strcpy(dest,src)
+#define STRNCPY_S(dest,size,src,len)    strncpy(dest,src,len)
+#define SSCANF_S(buf,format,...)        sscanf(buf,format,__VA_ARGS__)
+#define SPRINTF_S(buf,size,format,...)  sprintf(buf,format,__VA_ARGS__)
+#else
+#define STRCPY_S(dest,size,src)         strcpy_s(dest,size,src)
+#define STRNCPY_S(dest,size,src,len)    strncpy_s(dest,size,src,len)
+#define SSCANF_S(buf,format,...)        sscanf_s(buf,format,__VA_ARGS__)
+#define SPRINTF_S(buf,size,format,...)  sprintf_s(buf,size,format,__VA_ARGS__)
+#endif
+
+#define TOUCAN_USB_CLOCK_DOMAIN  50000000  // FIXME: replace this
 
 #if (OPTION_TOUCAN_DYLIB != 0)
 __attribute__((constructor))
@@ -61,19 +65,7 @@ static void _finalizer() {
 #define EXPORT
 #endif
 
-#ifndef _MSC_VER
-#define STRCPY_S(dest,size,src)         strcpy(dest,src)
-#define STRNCPY_S(dest,size,src,len)    strncpy(dest,src,len)
-#define SSCANF_S(buf,format,...)        sscanf(buf,format,__VA_ARGS__)
-#define SPRINTF_S(buf,size,format,...)  sprintf(buf,format,__VA_ARGS__)
-#else
-#define STRCPY_S(dest,size,src)         strcpy_s(dest,size,src)
-#define STRNCPY_S(dest,size,src,len)    strncpy_s(dest,size,src,len)
-#define SSCANF_S(buf,format,...)        sscanf_s(buf,format,__VA_ARGS__)
-#define SPRINTF_S(buf,size,format,...)  sprintf_s(buf,size,format,__VA_ARGS__)
-#endif
-
-#define TOUCAN_USB_CLOCK_DOMAIN  50000000  // FIXME: replace this
+static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Version " VERSION_STRING;
 
 EXPORT
 CTouCAN::CTouCAN() {

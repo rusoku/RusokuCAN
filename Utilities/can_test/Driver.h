@@ -19,29 +19,9 @@
 //
 #ifndef DRIVER_H_INCLUDED
 #define DRIVER_H_INCLUDED
-#include "build_no.h"
-#define VERSION_MAJOR    0
-#define VERSION_MINOR    3
-#define VERSION_PATCH    0
-#define VERSION_BUILD    BUILD_NO
-#if (VERSION_PATCH == 0)
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) " (" TOSTRING(BUILD_NO) ")"
-#else
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
-#endif
-#if defined(_WIN64)
-#define PLATFORM        "x64"
-#elif defined(_WIN32)
-#define PLATFORM        "x86"
-#elif defined(__linux__)
-#define PLATFORM        "Linux"
-#elif defined(__APPLE__)
-#define PLATFORM        "macOS"
-#elif defined(__CYGWIN__)
-#define PLATFORM        "Cygwin"
-#else
-#error Platform not supported
-#endif
+
+#include "TouCAN.h"
+
 #if (OPTION_CAN_2_0_ONLY != 0)
 #error Compilation with legacy CAN 2.0 frame format!
 #else
@@ -49,8 +29,6 @@
 #endif
 #define TESTER_INTEFACE   "Rusoku TouCAN USB Interfaces"
 #define TESTER_COPYRIGHT  "2008-2010,2014-2024 by Uwe Vogt, UV Software, Berlin"
-
-#include "TouCAN.h"
 
 typedef CTouCAN  CCanDriver;
 
