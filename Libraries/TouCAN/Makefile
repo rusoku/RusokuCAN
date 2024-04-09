@@ -23,7 +23,18 @@ current_OS := $(patsubst CYGWIN%,Cygwin,$(current_OS))
 current_OS := $(patsubst MINGW%,MinGW,$(current_OS))
 current_OS := $(patsubst MSYS%,MinGW,$(current_OS))
 
+MAJOR = 0
+MINOR = 3
+PATCH = 0
+
+ifeq ($(PATCH),0)
+VERSION = $(MAJOR).$(MINOR)
+else
+VERSION = $(MAJOR).$(MINOR).$(PATCH)
+endif
+
 HOME_DIR = ../..
+MAIN_DIR = .
 
 SOURCE_DIR = $(HOME_DIR)/Sources
 CANAPI_DIR = $(HOME_DIR)/Sources/CANAPI
@@ -31,37 +42,14 @@ MACCAN_DIR = $(HOME_DIR)/Sources/MacCAN
 DRIVER_DIR = $(HOME_DIR)/Sources/Driver
 WRAPPER_DIR = $(HOME_DIR)/Sources/Wrapper
 
-OBJECTS = $(OUTDIR)/TouCAN.o \
+OBJECTS = $(OUTDIR)/can_api.o $(OUTDIR)/can_btr.o \
 	$(OUTDIR)/TouCAN_Driver.o $(OUTDIR)/TouCAN_USB_Driver.o \
 	$(OUTDIR)/TouCAN_USB_Device.o $(OUTDIR)/TouCAN_USB.o \
 	$(OUTDIR)/MacCAN_Devices.o $(OUTDIR)/MacCAN_Debug.o \
 	$(OUTDIR)/MacCAN_IOUsbKit.o $(OUTDIR)/MacCAN_MsgQueue.o \
-	$(OUTDIR)/can_api.o $(OUTDIR)/can_btr.o
+	$(OUTDIR)/TouCAN.o
 
-
-ifeq ($(current_OS),Darwin) # macOS - libTouCAN.dylib
-
-PROJECT = TouCAN
-LIBRARY = lib$(PROJECT)
-
-MAJOR = 0
-MINOR = 3
-PATCH = 0
-
-VERSION = $(MAJOR).$(MINOR)
-TARGET  = $(LIBRARY).$(VERSION).dylib
-STATIC  = $(LIBRARY).a
-
-INSTALL_NAME = @rpath/$(TARGET)
-CURRENT_VERSION = $(MAJOR).$(MINOR).$(PATCH)
-COMPATIBILITY_VERSION = $(MAJOR).$(MINOR).0
-
-INSTALL = /usr/local/lib
-
-INCLUDE = /usr/local/include
-
-DEFINES = -DOPTION_TOUCAN_DYLIB=1 \
-	-DOPTION_CANAPI_TOUCAN_DYLIB=0 \
+DEFINES = -DOPTION_CAN_2_0_ONLY=0 \
 	-DOPTION_CANAPI_DRIVER=1 \
 	-DOPTION_CANAPI_RETVALS=0 \
 	-DOPTION_CANAPI_COMPANIONS=1 \
@@ -72,14 +60,31 @@ DEFINES = -DOPTION_TOUCAN_DYLIB=1 \
 	-DOPTION_MACCAN_DEBUG_LEVEL=0 \
 	-DOPTION_MACCAN_INSTRUMENTATION=0 \
 	-DOPTION_CANAPI_DEBUG_LEVEL=0 \
-	-DOPTION_CANAPI_INSTRUMENTATION=0 \
-	-DOPTION_CAN_2_0_ONLY=0
+	-DOPTION_CANAPI_INSTRUMENTATION=0
 
 HEADERS = -I$(SOURCE_DIR) \
 	-I$(CANAPI_DIR) \
 	-I$(MACCAN_DIR) \
 	-I$(DRIVER_DIR) \
 	-I$(WRAPPER_DIR)
+
+
+ifeq ($(current_OS),Darwin)  # macOS - libTouCAN.dylib
+
+PROJECT = TouCAN
+LIBRARY = lib$(PROJECT)
+
+TARGET  = $(LIBRARY).$(VERSION).dylib
+STATIC  = $(LIBRARY).a
+
+INSTALL_NAME = $(TARGET)
+CURRENT_VERSION = $(MAJOR).$(MINOR).$(PATCH)
+COMPATIBILITY_VERSION = $(MAJOR).$(MINOR).0
+
+INSTALL = /usr/local/lib
+
+DEFINES += -DOPTION_TOUCAN_DYLIB=1 \
+	-DOPTION_CANAPI_TOUCAN_DYLIB=0
 
 CFLAGS += -O2 -Wall -Wextra -Wno-parentheses \
 	-fmessage-length=0 -fno-strict-aliasing \
@@ -90,12 +95,9 @@ CXXFLAGS += -O2 -g -Wall -Wextra -pthread \
 	$(DEFINES) \
 	$(HEADERS)
 
-LIBRARIES =
-
-LDFLAGS  += -lpthread \
-	-nostartfiles -dynamiclib -fvisibility=hidden \
+LDFLAGS += -nostartfiles -dynamiclib -fvisibility=hidden \
 	-Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation \
-	-Wl,-install_name,$(INSTALL_NAME) \
+	-Wl,-install_name,@rpath/$(INSTALL_NAME) \
 	-Wl,-current_version,$(CURRENT_VERSION) \
 	-Wl,-compatibility_version,$(COMPATIBILITY_VERSION)
 
@@ -106,6 +108,8 @@ CFLAGS += -arch arm64 -arch x86_64
 CXXFLAGS += -arch arm64 -arch x86_64
 LDFLAGS += -arch arm64 -arch x86_64
 endif
+
+LIBRARIES = -lpthread
 
 CXX = clang++
 CC = clang
@@ -166,6 +170,12 @@ endif
 $(OUTDIR)/TouCAN.o: $(SOURCE_DIR)/TouCAN.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
+$(OUTDIR)/can_api.o: $(WRAPPER_DIR)/can_api.c
+	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/can_btr.o: $(CANAPI_DIR)/can_btr.c
+	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
+
 $(OUTDIR)/TouCAN_Driver.o: $(DRIVER_DIR)/TouCAN_Driver.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
@@ -190,15 +200,9 @@ $(OUTDIR)/MacCAN_IOUsbKit.o: $(MACCAN_DIR)/MacCAN_IOUsbKit.c
 $(OUTDIR)/MacCAN_MsgQueue.o: $(MACCAN_DIR)/MacCAN_MsgQueue.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
-$(OUTDIR)/can_api.o: $(WRAPPER_DIR)/can_api.c
-	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
-
-$(OUTDIR)/can_btr.o: $(CANAPI_DIR)/can_btr.c
-	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
-
 
 $(STATIC): $(OBJECTS)
-	$(LT) $(LTFLAGS) -o $@ $(OBJECTS) $(LIBRARIES)
+	$(LT) $(LTFLAGS) -o $@ $(OBJECTS)
 	$(CP) $@ $(BINDIR)
 	@lipo -archs $@
 	@echo "\033[1mTarget '"$@"' successfully build\033[0m"
