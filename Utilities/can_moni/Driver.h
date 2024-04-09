@@ -2,7 +2,7 @@
 //
 //  CAN Monitor for generic Interfaces (CAN API V3)
 //
-//  Copyright (c) 2007,2012-2023 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+//  Copyright (c) 2007,2012-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -20,23 +20,27 @@
 #ifndef DRIVER_H_INCLUDED
 #define DRIVER_H_INCLUDED
 #include "build_no.h"
-#define VERSION_MAJOR      0
-#define VERSION_MINOR      2
-#define VERSION_PATCH      6
-#define VERSION_BUILD      BUILD_NO
-#define VERSION_STRING     TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
-#if defined(_WIN64)
-#define PLATFORM          "x64"
-#elif defined(_WIN32)
-#define PLATFORM          "x86"
-#elif defined(__linux__)
-#define PLATFORM          "Linux"
-#elif defined(__APPLE__)
-#define PLATFORM          "macOS"
-#elif defined(__CYGWIN__)
-#define PLATFORM          "Cygwin"
+#define VERSION_MAJOR    0
+#define VERSION_MINOR    3
+#define VERSION_PATCH    0
+#define VERSION_BUILD    BUILD_NO
+#if (VERSION_PATCH == 0)
+#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) " (" TOSTRING(BUILD_NO) ")"
 #else
-#error Unsupported architecture
+#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
+#endif
+#if defined(_WIN64)
+#define PLATFORM        "x64"
+#elif defined(_WIN32)
+#define PLATFORM        "x86"
+#elif defined(__linux__)
+#define PLATFORM        "Linux"
+#elif defined(__APPLE__)
+#define PLATFORM        "macOS"
+#elif defined(__CYGWIN__)
+#define PLATFORM        "Cygwin"
+#else
+#error Platform not supported
 #endif
 #if (OPTION_CAN_2_0_ONLY != 0)
 #error Compilation with legacy CAN 2.0 frame format!
@@ -44,7 +48,7 @@
 #define CAN_FD_SUPPORTED  0  // set to non-zero once CAN FD is supported
 #endif
 #define MONITOR_INTEFACE  "Rusoku TouCAN USB Interfaces"
-#define MONITOR_COPYRIGHT "2007,2012-2023 by Uwe Vogt, UV Software, Berlin"
+#define MONITOR_COPYRIGHT "2007,2012-2024 by Uwe Vogt, UV Software, Berlin"
 
 #include "TouCAN.h"
 

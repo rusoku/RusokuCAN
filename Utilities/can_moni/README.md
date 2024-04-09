@@ -1,5 +1,5 @@
-__CAN Monitor for Rusoku TouCAN USB Interfaces, Version 0.2.6__ \
-Copyright &copy; 2007,2012-2023 by Uwe Vogt, UV Software, Berlin
+__CAN Monitor for Rusoku TouCAN USB Interfaces, Version 0.3__ \
+Copyright &copy; 2007,2012-2024 by Uwe Vogt, UV Software, Berlin
 
 ```
 Usage: can_moni <interface> [<option>...]

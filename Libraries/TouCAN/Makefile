@@ -1,7 +1,7 @@
 #
 #	TouCAN - macOS User-Space Driver for Rusoku TouCAN USB Interfaces
 #
-#	Copyright (C) 2020-2023 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+#	Copyright (C) 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
 #
 #	This file is part of MacCAN-TouCAN.
 #
@@ -45,10 +45,10 @@ PROJECT = TouCAN
 LIBRARY = lib$(PROJECT)
 
 MAJOR = 0
-MINOR = 2
-PATCH = 6
+MINOR = 3
+PATCH = 0
 
-VERSION = $(MAJOR).$(MINOR).$(PATCH)
+VERSION = $(MAJOR).$(MINOR)
 TARGET  = $(LIBRARY).$(VERSION).dylib
 STATIC  = $(LIBRARY).a
 
