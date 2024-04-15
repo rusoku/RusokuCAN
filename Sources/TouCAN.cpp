@@ -70,22 +70,6 @@ static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Vers
 EXPORT
 CTouCAN::CTouCAN() {
     m_Handle = (-1);
-    m_OpMode.byte = CANMODE_DEFAULT;
-    m_Bitrate.btr.frequency = TOUCAN_USB_CLOCK_DOMAIN;
-    m_Bitrate.btr.nominal.brp = 10;
-    m_Bitrate.btr.nominal.tseg1 = 14;
-    m_Bitrate.btr.nominal.tseg2 = 5;
-    m_Bitrate.btr.nominal.sjw = 4;
-    m_Bitrate.btr.nominal.sam = 0;
-#if (OPTION_CAN_2_0_ONLY == 0)
-    m_Bitrate.btr.data.brp = m_Bitrate.btr.nominal.brp;
-    m_Bitrate.btr.data.tseg1 = m_Bitrate.btr.nominal.tseg1;
-    m_Bitrate.btr.data.tseg2 = m_Bitrate.btr.nominal.tseg2;
-    m_Bitrate.btr.data.sjw = m_Bitrate.btr.nominal.sjw;
-#endif
-    m_Counter.u64TxMessages = 0U;
-    m_Counter.u64RxMessages = 0U;
-    m_Counter.u64ErrorFrames = 0U;
 }
 
 EXPORT
@@ -124,7 +108,7 @@ bool CTouCAN::GetNextChannel(SChannelInfo &info, void *param) {
     // set index to the next entry in the interface list (if any)
     CANAPI_Return_t rc = can_property((-1), CANPROP_SET_NEXT_CHANNEL, NULL, 0U);
     if (CANERR_NOERROR == rc) {
-        // get channel no, device name and device DLL name at actual index in the interface list
+        // get channel no, device name, etc. at actual index in the interface list
         if (((can_property((-1), CANPROP_GET_CHANNEL_NO, (void*)&info.m_nChannelNo, sizeof(int32_t))) == 0) &&
             ((can_property((-1), CANPROP_GET_CHANNEL_NAME, (void*)&info.m_szDeviceName, CANPROP_MAX_BUFFER_SIZE)) == 0) &&
             ((can_property((-1), CANPROP_GET_CHANNEL_DLLNAME, (void*)&info.m_szDeviceDllName, CANPROP_MAX_BUFFER_SIZE)) == 0)) {
@@ -160,7 +144,6 @@ CANAPI_Return_t CTouCAN::InitializeChannel(int32_t channel, const CANAPI_OpMode_
     CANAPI_Handle_t hnd = can_init(channel, opMode.byte, param);
     if (0 <= hnd) {
         m_Handle = hnd;  // we got a handle
-        m_OpMode = opMode;
         rc = CANERR_NOERROR;
     } else {
         rc = (CANAPI_Return_t)hnd;
@@ -194,12 +177,7 @@ CANAPI_Return_t CTouCAN::SignalChannel() {
 EXPORT
 CANAPI_Return_t CTouCAN::StartController(CANAPI_Bitrate_t bitrate) {
     // start the CAN controller with the given bit-rate settings
-    CANAPI_Return_t rc = can_start(m_Handle, &bitrate);
-    if (CANERR_NOERROR == rc) {
-        m_Bitrate = bitrate;
-        memset(&m_Counter, 0, sizeof(m_Counter));
-    }
-    return rc;
+    return can_start(m_Handle, &bitrate);
 }
 
 EXPORT
@@ -211,22 +189,13 @@ CANAPI_Return_t CTouCAN::ResetController() {
 EXPORT
 CANAPI_Return_t CTouCAN::WriteMessage(CANAPI_Message_t message, uint16_t timeout) {
     // transmit a message over the CAN bus
-    CANAPI_Return_t rc = can_write(m_Handle, &message, timeout);
-    if (CANERR_NOERROR == rc) {
-        m_Counter.u64TxMessages++;
-    }
-    return rc;
+    return can_write(m_Handle, &message, timeout);
 }
 
 EXPORT
 CANAPI_Return_t CTouCAN::ReadMessage(CANAPI_Message_t &message, uint16_t timeout) {
     // read one message from the message queue of the CAN interface, if any
-    CANAPI_Return_t rc = can_read(m_Handle, &message, timeout);
-    if (CANERR_NOERROR == rc) {
-        m_Counter.u64RxMessages += !message.sts ? 1U : 0U;
-        m_Counter.u64ErrorFrames += message.sts ? 1U : 0U;
-    }
-    return rc;
+    return can_read(m_Handle, &message, timeout);
 }
 
 EXPORT
@@ -244,17 +213,13 @@ CANAPI_Return_t CTouCAN::GetBusLoad(uint8_t &load) {
 EXPORT
 CANAPI_Return_t CTouCAN::GetBitrate(CANAPI_Bitrate_t &bitrate) {
     // retrieve the bit-rate setting of the CAN interface
-    CANAPI_Return_t rc = can_bitrate(m_Handle, &bitrate, NULL);
-    if (CANERR_NOERROR == rc) {
-        m_Bitrate = bitrate;
-    }
-    return rc;
+    return can_bitrate(m_Handle, &bitrate, NULL);
 }
 
 EXPORT
 CANAPI_Return_t CTouCAN::GetBusSpeed(CANAPI_BusSpeed_t &speed) {
     // retrieve the transmission rate of the CAN interface
-    return can_bitrate(m_Handle, &m_Bitrate, &speed);
+    return can_bitrate(m_Handle, NULL, &speed);
 }
 
 EXPORT
