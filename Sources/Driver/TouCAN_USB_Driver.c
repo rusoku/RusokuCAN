@@ -389,6 +389,53 @@ CANUSB_Return_t TouCAN_USB_GetBusStatus(TouCAN_Device_t *device, TouCAN_Status_t
     return retVal;
 }
 
+CANUSB_Return_t TouCAN_USB_SetStdFilter(TouCAN_Device_t *device, uint32_t code, uint32_t mask) {
+    CANUSB_Return_t retVal = CANUSB_ERROR_FATAL;
+
+    /* sanity check */
+    if (!device)
+        return CANUSB_ERROR_NULLPTR;
+    if (!device->configured)
+        return CANUSB_ERROR_NOTINIT;
+
+    /* set standard filter */
+    retVal = TouCAN_USB_CmdSetStandardFilter(device->handle, FILTER_VALUE, code, mask);
+
+    return retVal;
+}
+
+CANUSB_Return_t TouCAN_USB_SetXtdFilter(TouCAN_Device_t *device, uint32_t code, uint32_t mask) {
+    CANUSB_Return_t retVal = CANUSB_ERROR_FATAL;
+
+    /* sanity check */
+    if (!device)
+        return CANUSB_ERROR_NULLPTR;
+    if (!device->configured)
+        return CANUSB_ERROR_NOTINIT;
+
+    /* set extended filter */
+    retVal = TouCAN_USB_CmdSetExtendedFilter(device->handle, FILTER_VALUE, code, mask);
+
+    return retVal;
+}
+
+CANUSB_Return_t TouCAN_USB_ResetFilters(TouCAN_Device_t *device) {
+    CANUSB_Return_t retStd = CANUSB_ERROR_FATAL;
+    CANUSB_Return_t retXtd = CANUSB_ERROR_FATAL;
+
+    /* sanity check */
+    if (!device)
+        return CANUSB_ERROR_NULLPTR;
+    if (!device->configured)
+        return CANUSB_ERROR_NOTINIT;
+
+    /* reset both filters to accept all identifiers */
+    retStd = TouCAN_USB_CmdSetStandardFilter(device->handle, FILTER_ACCEPT_ALL, 0x0U, 0x0U);
+    retXtd = TouCAN_USB_CmdSetExtendedFilter(device->handle, FILTER_ACCEPT_ALL, 0x0U, 0x0U);
+
+    return (retStd != CANUSB_SUCCESS) ? retStd : retXtd;
+}
+
 bool TouCAN_USB_Index2Bitrate(int32_t index, TouCAN_Bitrate_t *bitrate) {
     bool retVal = true;
     

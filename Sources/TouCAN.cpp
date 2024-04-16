@@ -273,6 +273,50 @@ CANAPI_Return_t CTouCAN::SetProperty(uint16_t param, const void *value, uint32_t
 }
 
 EXPORT
+CANAPI_Return_t CTouCAN::SetFilter11Bit(uint32_t code, uint32_t mask) {
+    uint64_t filter = ((uint64_t)code << 32) | (uint64_t)mask;
+    // set the 11-bit acceptance filter of the CAN interface
+    return can_property(m_Handle, CANPROP_SET_FILTER_11BIT, (void*)&filter, sizeof(uint64_t));
+}
+
+EXPORT
+CANAPI_Return_t CTouCAN::SetFilter29Bit(uint32_t code, uint32_t mask) {
+    uint64_t filter = ((uint64_t)code << 32) | (uint64_t)mask;
+    // set the 29-bit acceptance filter of the CAN interface
+    return can_property(m_Handle, CANPROP_SET_FILTER_29BIT, (void*)&filter, sizeof(uint64_t));
+}
+
+EXPORT
+CANAPI_Return_t CTouCAN::GetFilter11Bit(uint32_t &code, uint32_t &mask) {
+    uint64_t filter = 0U;
+    // retrieve the 11-bit acceptance filter of the CAN interface
+    CANAPI_Return_t rc = can_property(m_Handle, CANPROP_GET_FILTER_11BIT, (void*)&filter, sizeof(uint64_t));
+    if (CANERR_NOERROR == rc) {
+        code = (uint32_t)(filter >> 32);
+        mask = (uint32_t)(filter >> 0);
+    }
+    return rc;
+}
+
+EXPORT
+CANAPI_Return_t CTouCAN::GetFilter29Bit(uint32_t &code, uint32_t &mask) {
+    uint64_t filter = 0U;
+    // retrieve the 29-bit acceptance filter of the CAN interface
+    CANAPI_Return_t rc = can_property(m_Handle, CANPROP_GET_FILTER_29BIT, (void*)&filter, sizeof(uint64_t));
+    if (CANERR_NOERROR == rc) {
+        code = (uint32_t)(filter >> 32);
+        mask = (uint32_t)(filter >> 0);
+    }
+    return rc;
+}
+
+EXPORT
+CANAPI_Return_t CTouCAN::ResetFilters() {
+    // reset all acceptance filters of the CAN interface
+    return can_property(m_Handle, CANPROP_SET_FILTER_RESET, NULL, 0U);
+}
+
+EXPORT
 char *CTouCAN::GetHardwareVersion() {
     // retrieve the hardware version of the CAN controller
     return can_hardware(m_Handle);

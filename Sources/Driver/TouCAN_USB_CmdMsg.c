@@ -158,7 +158,7 @@ int TouCAN_USB_CmdInitInterface(TouCAN_Handle_t handle, uint16_t brp, uint8_t ts
     data[8] = (uint8_t)(flags & 0xFFU);
 
     // TouCAN_CAN_INTERFACE_INIT
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_CAN_INTERFACE_INIT, (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_CAN_INTERFACE_INIT, &Transferred);
     if (retVal < 0)
         return (int)retVal;
     
@@ -272,7 +272,7 @@ int TouCAN_USB_CmdGetLastErrorCode(TouCAN_Handle_t handle, uint8_t *error) {
     SetupPacket.Index = 0U;
     SetupPacket.Length = 1U;
 
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)&LastErrorCode, (UInt16)sizeof(LastErrorCode), (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)&LastErrorCode, (UInt16)sizeof(LastErrorCode), &Transferred);
     if (retVal < 0)
         return (int)retVal;
     
@@ -397,7 +397,7 @@ int TouCAN_get_statistics(TouCAN_Handle_t handle, PCANALSTATISTICS statistics) {
     SetupPacket.Index = 0U;
     SetupPacket.Length = 28U;
 
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_GET_STATISTICS, (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_GET_STATISTICS, &Transferred);
     if (retVal < 0)
         return (int)retVal;
 
@@ -491,7 +491,7 @@ int TouCAN_USB_CmdGetChannelStatus(TouCAN_Handle_t handle, PCANALSTATUS status) 
     SetupPacket.Index = 0U;
     SetupPacket.Length = 4U;
 
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_GET_CAN_ERROR_STATUS, (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_GET_CAN_ERROR_STATUS, &Transferred);
     if (retVal < 0)
         return (int)retVal;
 
@@ -807,7 +807,7 @@ int TouCAN_USB_CmdSetTransmitDelay(TouCAN_Handle_t handle, /*uint8_t channel,*/ 
     data[2] = (uint8_t)((delay >> 8) & 0xFFU);
     data[3] = (uint8_t)(delay & 0xFFU);
 
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_SET_CAN_INTERFACE_DELAY, (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)LEN_SET_CAN_INTERFACE_DELAY, &Transferred);
     if (retVal < 0)
         return (int)retVal;
 
@@ -830,7 +830,7 @@ int TouCAN_USB_CmdSetStandardFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
     uint8_t data[TOUCAN_USB_CMD_PIPE_SIZE];
     memset(data, 0, TOUCAN_USB_CMD_PIPE_SIZE);
     UInt32 Transferred = 0U;
-    UInt32 Length = 0U;
+    UInt16 Length = 0U;
 
     SetupPacket.RequestType = USBREQ_HOST_TO_DEVICE | USBREQ_TYPE_CLASS | USBREQ_RECIPIENT_INTERFACE;
     switch (mode) {
@@ -842,7 +842,7 @@ int TouCAN_USB_CmdSetStandardFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
     }
     SetupPacket.Value = 0U;
     SetupPacket.Index = 0U;
-    SetupPacket.Length = 0U;
+    SetupPacket.Length = Length;
 
     data[0] = (uint8_t)((code >> 24) & 0xFFU);
     data[1] = (uint8_t)((code >> 16) & 0xFFU);
@@ -854,7 +854,7 @@ int TouCAN_USB_CmdSetStandardFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
     data[6] = (uint8_t)((mask >> 8) & 0xFFU);
     data[7] = (uint8_t) (mask & 0xFFU);
 
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)Length, (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, Length, &Transferred);
     if (retVal < 0)
         return (int)retVal;
 
@@ -864,7 +864,7 @@ int TouCAN_USB_CmdSetStandardFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
 
     if (res != TOUCAN_RETVAL_OK)
         return (int)TOUCAN_ERROR_OFFSET - (int)res;
-    else if (Transferred != Length)
+    else if (Transferred != (UInt32)Length)
         return (int)TOUCAN_ERROR_OFFSET - (int)TOUCAN_RETVAL_UNKNOWN;
 
     return (int)retVal;
@@ -877,7 +877,7 @@ int TouCAN_USB_CmdSetExtendedFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
     uint8_t data[TOUCAN_USB_CMD_PIPE_SIZE];
     memset(data, 0, TOUCAN_USB_CMD_PIPE_SIZE);
     UInt32 Transferred = 0U;
-    UInt32 Length = 0U;
+    UInt16 Length = 0U;
 
     SetupPacket.RequestType = USBREQ_HOST_TO_DEVICE | USBREQ_TYPE_CLASS | USBREQ_RECIPIENT_INTERFACE;
     switch (mode) {
@@ -889,7 +889,7 @@ int TouCAN_USB_CmdSetExtendedFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
     }
     SetupPacket.Value = 0U;
     SetupPacket.Index = 0U;
-    SetupPacket.Length = 0U;
+    SetupPacket.Length = Length;
 
     data[0] = (uint8_t)((code >> 24) & 0xFFU);
     data[1] = (uint8_t)((code >> 16) & 0xFFU);
@@ -901,7 +901,7 @@ int TouCAN_USB_CmdSetExtendedFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
     data[6] = (uint8_t)((mask >> 8) & 0xFFU);
     data[7] = (uint8_t)(mask & 0xFFU);
 
-    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, (UInt16)Length, (UInt32*)&Transferred);
+    retVal = CANUSB_DeviceRequest(handle, SetupPacket, (void*)data, Length, &Transferred);
     if (retVal < 0)
         return (int)retVal;
 
@@ -911,7 +911,7 @@ int TouCAN_USB_CmdSetExtendedFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t 
 
     if (res != TOUCAN_RETVAL_OK)
         return (int)TOUCAN_ERROR_OFFSET - (int)res;
-    else if (Transferred != Length)
+    else if (Transferred != (UInt32)Length)
         return (int)TOUCAN_ERROR_OFFSET - (int)TOUCAN_RETVAL_UNKNOWN;
 
     return (int)retVal;

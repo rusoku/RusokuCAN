@@ -97,6 +97,10 @@ extern CANUSB_Return_t TouCAN_USB_WriteMessage(TouCAN_Device_t *device, const To
 extern CANUSB_Return_t TouCAN_USB_ReadMessage(TouCAN_Device_t *device, TouCAN_CanMessage_t *message, uint16_t timeout);
 extern CANUSB_Return_t TouCAN_USB_GetBusStatus(TouCAN_Device_t *device, TouCAN_Status_t *status);
 
+extern CANUSB_Return_t TouCAN_USB_SetStdFilter(TouCAN_Device_t *device, uint32_t code, uint32_t mask);
+extern CANUSB_Return_t TouCAN_USB_SetXtdFilter(TouCAN_Device_t *device, uint32_t code, uint32_t mask);
+extern CANUSB_Return_t TouCAN_USB_ResetFilters(TouCAN_Device_t *device);
+
 extern bool TouCAN_USB_Index2Bitrate(int32_t index, TouCAN_Bitrate_t *bitrate);
 
 #ifdef __cplusplus
