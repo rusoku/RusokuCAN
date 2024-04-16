@@ -1,13 +1,13 @@
 #
 #  CAN Interface API, Version 3 (Testing)
 #
-#  Copyright (c) 2004-2023 Uwe Vogt, UV Software, Berlin (info@uv-software.com)
+#  Copyright (c) 2004-2024 Uwe Vogt, UV Software, Berlin (info@uv-software.com)
 #  All rights reserved.
 #
 #  This file is part of CAN API V3.
 #
-#  CAN API V3 is dual-licensed under the BSD 2-Clause "Simplified" License and
-#  under the GNU General Public License v3.0 (or any later version).
+#  CAN API V3 is dual-licensed under the BSD 2-Clause "Simplified" License
+#  and under the GNU General Public License v3.0 (or any later version).
 #  You can choose between one of them if you use this file.
 #
 #  BSD 2-Clause "Simplified" License:
@@ -42,7 +42,7 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with CAN API V3.  If not, see <http://www.gnu.org/licenses/>.
+#  along with CAN API V3.  If not, see <https://www.gnu.org/licenses/>.
 #
 current_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown OS')
 current_OS := $(patsubst CYGWIN%,Cygwin,$(current_OS))
@@ -68,6 +68,8 @@ OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/Device.o $(OUTDIR)/Options.o \
 	$(OUTDIR)/TC09_GetStatus.o \
 	$(OUTDIR)/TC11_GetBitrate.o $(OUTDIR)/Bitrates.o \
 	$(OUTDIR)/TC12_GetProperty.o $(OUTDIR)/Properties.o \
+	$(OUTDIR)/TC23_SetFilter11Bit.o $(OUTDIR)/TC25_SetFilter29Bit.o \
+	$(OUTDIR)/TC27_ResetFilter.o \
 	$(OUTDIR)/TCx1_CallSequences.o $(OUTDIR)/TCx2_BitrateConverter.o \
 	$(OUTDIR)/Timer64.o $(OUTDIR)/Progress.o
 
@@ -171,6 +173,15 @@ $(OUTDIR)/TC11_GetBitrate.o: $(TEST_DIR)/TC11_GetBitrate.cc
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/TC12_GetProperty.o: $(TEST_DIR)/TC12_GetProperty.cc
+	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/TC23_SetFilter11Bit.o: $(TEST_DIR)/TC23_SetFilter11Bit.cc
+	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/TC25_SetFilter29Bit.o: $(TEST_DIR)/TC25_SetFilter29Bit.cc
+	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/TC27_ResetFilter.o: $(TEST_DIR)/TC27_ResetFilter.cc
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/TCx1_CallSequences.o: $(TEST_DIR)/TCx1_CallSequences.cc
