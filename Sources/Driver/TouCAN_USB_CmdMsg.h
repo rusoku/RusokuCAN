@@ -2,7 +2,7 @@
 /*
  *  TouCAN - macOS User-Space Driver for Rusoku TouCAN USB Adapters
  *
- *  Copyright (c) 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+ *  Copyright (c) 2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
  *  All rights reserved.
  *
  *  This file is part of MacCAN-TouCAN.
@@ -45,16 +45,40 @@
  *  You should have received a copy of the GNU General Public License
  *  along with MacCAN-TouCAN.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef VERSION_H_INCLUDED
-#define VERSION_H_INCLUDED
-#include "build_no.h"
-#define VERSION_MAJOR    0
-#define VERSION_MINOR    3
-#define VERSION_PATCH    0
-#define VERSION_BUILD    BUILD_NO
-#if (VERSION_PATCH == 0)
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) " (" TOSTRING(BUILD_NO) ")"
-#else
-#define VERSION_STRING   TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
+#ifndef TOUCAN_USB_COMMANDS_H_INCLUDED
+#define TOUCAN_USB_COMMANDS_H_INCLUDED
+
+#include "TouCAN_USB_Common.h"
+
+typedef int TouCAN_Handle_t;
+
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+extern int TouCAN_USB_CmdInitInterface(TouCAN_Handle_t handle, uint16_t brp, uint8_t tseg1, uint8_t tseg2, uint8_t sjw, uint32_t flags);
+extern int TouCAN_USB_CmdDeinitInterface(TouCAN_Handle_t handle);
+extern int TouCAN_USB_CmdStartInterface(TouCAN_Handle_t handle);
+extern int TouCAN_USB_CmdStopInterface(TouCAN_Handle_t handle);
+
+extern int TouCAN_USB_CmdGetLastErrorCode(TouCAN_Handle_t handle, uint8_t *error);
+extern int TouCAN_USB_CmdGetInterfaceErrorCode(TouCAN_Handle_t handle, uint32_t *error);
+extern int TouCAN_USB_CmdClearInterfaceErrorCode(TouCAN_Handle_t handle);
+extern int TouCAN_USB_CmdGetInterfaceState(TouCAN_Handle_t handle, uint8_t *state);
+
+extern int TouCAN_USB_CmdGetHardwareVersion(TouCAN_Handle_t handle, uint32_t *value);
+extern int TouCAN_USB_CmdGetFirmwareVersion(TouCAN_Handle_t handle, uint32_t *value);
+extern int TouCAN_USB_CmdGetBootloaderVersion(TouCAN_Handle_t handle, uint32_t *value);
+extern int TouCAN_USB_CmdGetSerialNumber(TouCAN_Handle_t handle, uint32_t *value);
+extern int TouCAN_USB_CmdGetVidPid(TouCAN_Handle_t handle, uint32_t *value);
+extern int TouCAN_USB_CmdGetDeviceId(TouCAN_Handle_t handle, uint32_t *value);
+extern int TouCAN_USB_CmdGetVendorName(TouCAN_Handle_t handle, size_t size, char *name);
+extern int TouCAN_USB_CmdGetTransmitDelay(TouCAN_Handle_t handle, uint32_t *delay);
+extern int TouCAN_USB_CmdSetTransmitDelay(TouCAN_Handle_t handle, uint32_t delay);
+extern int TouCAN_USB_CmdSetStandardFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t mode, uint32_t code, uint32_t mask);
+extern int TouCAN_USB_CmdSetExtendedFilter(TouCAN_Handle_t handle, TouCAN_FilterMode_t mode, uint32_t code, uint32_t mask);
+
+#ifdef __cplusplus
+}
 #endif
+#endif  /* TOUCAN_USB_COMMANDS_H_INCLUDED */

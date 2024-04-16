@@ -25,7 +25,7 @@ WRAPPER_DIR = $(HOME_DIR)/Sources/Wrapper
 OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/MacCAN_Debug.o $(OUTDIR)/MacCAN_Devices.o \
 	$(OUTDIR)/MacCAN_IOUsbKit.o $(OUTDIR)/MacCAN_MsgQueue.o \
 	$(OUTDIR)/TouCAN.o $(OUTDIR)/TouCAN_Driver.o $(OUTDIR)/TouCAN_USB_Driver.o \
-	$(OUTDIR)/TouCAN_USB_Device.o $(OUTDIR)/TouCAN_USB.o \
+	$(OUTDIR)/TouCAN_USB_Device.o $(OUTDIR)/TouCAN_USB_CmdMsg.o \
 	$(OUTDIR)/can_api.o  $(OUTDIR)/can_btr.o
 
 DEFINES = -DOPTION_CAN_2_0_ONLY=1 \
@@ -151,7 +151,7 @@ $(OUTDIR)/TouCAN_USB_Driver.o: $(DRIVER_DIR)/TouCAN_USB_Driver.c
 $(OUTDIR)/TouCAN_USB_Device.o: $(DRIVER_DIR)/TouCAN_USB_Device.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
-$(OUTDIR)/TouCAN_USB.o: $(DRIVER_DIR)/TouCAN_USB.c
+$(OUTDIR)/TouCAN_USB_CmdMsg.o: $(DRIVER_DIR)/TouCAN_USB_CmdMsg.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/can_api.o: $(WRAPPER_DIR)/can_api.c

@@ -47,7 +47,7 @@ let package = Package(
                 "Driver/TouCAN_Driver.c",
                 "Driver/TouCAN_USB_Driver.c",
                 "Driver/TouCAN_USB_Device.c",
-                "Driver/TouCAN_USB.c",
+                "Driver/TouCAN_USB_CmdMsg.c",
                 "MacCAN/MacCAN_MsgQueue.c",
                 "MacCAN/MacCAN_IOUsbKit.c",
                 "MacCAN/MacCAN_Devices.c",

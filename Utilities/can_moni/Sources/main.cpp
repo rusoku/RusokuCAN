@@ -2,7 +2,7 @@
 //
 //  CAN Monitor for generic Interfaces (CAN API V3)
 //
-//  Copyright (c) 2007,2012-2023 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+//  Copyright (c) 2007,2012-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 #include "Driver.h"
 #include "Timer.h"
@@ -89,7 +89,7 @@ static const char LICENSE[]     = "This program is free software: you can redist
                                   "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" \
                                   "GNU General Public License for more details.\n\n" \
                                   "You should have received a copy of the GNU General Public License\n" \
-                                  "along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+                                  "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 #define basename(x)  "can_moni" // FIXME: Where is my `basename' function?
 
 int main(int argc, const char * argv[]) {
