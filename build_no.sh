@@ -58,4 +58,3 @@ fi
 echo "#define STRINGIFY(X) #X" >> ./Sources/build_no.h
 echo "#define TOSTRING(X) STRINGIFY(X)" >> ./Sources/build_no.h
 echo "#endif" >> ./Sources/build_no.h
-
