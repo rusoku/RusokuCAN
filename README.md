@@ -57,6 +57,12 @@ public:
     CANAPI_Return_t GetProperty(uint16_t param, void *value, uint32_t nbyte);
     CANAPI_Return_t SetProperty(uint16_t param, const void *value, uint32_t nbyte);
 
+    CANAPI_Return_t SetFilter11Bit(uint32_t code, uint32_t mask);
+    CANAPI_Return_t SetFilter29Bit(uint32_t code, uint32_t mask);
+    CANAPI_Return_t GetFilter11Bit(uint32_t &code, uint32_t &mask);
+    CANAPI_Return_t GetFilter29Bit(uint32_t &code, uint32_t &mask);
+    CANAPI_Return_t ResetFilters();
+
     char *GetHardwareVersion();  // (for compatibility reasons)
     char *GetFirmwareVersion();  // (for compatibility reasons)
     static char *GetVersion();  // (for compatibility reasons)
