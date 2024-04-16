@@ -2,7 +2,7 @@
 /*
  *  TouCAN - macOS User-Space Driver for Rusoku TouCAN USB Adapters
  *
- *  Copyright (c) 2020-2024  Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+ *  Copyright (c) 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
  *  All rights reserved.
  *
  *  This file is part of MacCAN-TouCAN.
