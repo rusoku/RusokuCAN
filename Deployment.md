@@ -1,6 +1,6 @@
 ### macOS&reg; User-Space Driver for TouCAN USB Interfaces from Rusoku
 
-_Copyright &copy; 2020-2023 Uwe Vogt, UV Software, Berlin (info@mac-can.com)_ \
+_Copyright &copy; 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)_ \
 _All rights reserved._
 
 # Deployment Rules
@@ -26,16 +26,12 @@ _All rights reserved._
   - `Update CAN API V3 testing sources to rev. `_nnn_ \
     `- `_list of major changes (optional)_
 4. Check and update the version and date information in the following files:
-  - `$(PROJROOT)/Sources/TouCAN.h`
-  - `$(PROJROOT)/Sources/TouCAN.cpp`
-  - `$(PROJROOT)/Sources/Wrapper/can_api.c`
+  - `$(PROJROOT)/Sources/Version.h`
   - `$(PROJROOT)/Sources/Swift/CANAPI.swift`
   - `$(PROJROOT)/Libraries/CANAPI/Makefile`<sup>*</sup>
   - `$(PROJROOT)/Libraries/TouCAN/Makefile`<sup>*</sup>
-  - `$(PROJROOT)/Utilities/can_moni/Driver.h`
   - `$(PROJROOT)/Utilities/can_moni/Makefile`
   - `$(PROJROOT)/Utilities/can_moni/README.md`
-  - `$(PROJROOT)/Utilities/can_test/Driver.h`
   - `$(PROJROOT)/Utilities/can_test/Makefile`
   - `$(PROJROOT)/Utilities/can_test/README.md`
 
@@ -85,12 +81,12 @@ _All rights reserved._
 3. Run the `Makefile` in the project root folder:
   - `uv-pc013mac:~ eris$ cd $(PROJROOT)`
   - `uv-pc013mac:RusokuCAN eris$ make pristine`
-  - `uv-pc013mac:RusokuCAN eris$ make BINARY=UNIVERSAL`
+  - `uv-pc013mac:RusokuCAN eris$ make all BINARY=UNIVERSAL`
   - `uv-pc013mac:RusokuCAN eris$ make test`
   - `uv-pc013mac:RusokuCAN eris$ sudo make install`
 4. Build the CAN API V3 GoogleTest program:
   - `uv-pc013mac:~ eris$ cd $(PROJROOT)/Tests/CANAPI`
-  - `uv-pc013mac:CANAPI eris$ make pristine`
+  - `uv-pc013mac:CANAPI eris$ make clean`
   - `uv-pc013mac:CANAPI eris$ make all`
 5. Run the CAN API V3 GoogleTest program with two TouCAN USB device:
   - `uv-pc013mac:CANAPI eris$./tou_testing --can_dut1=TouCAN-USB1 --can_dut2=TouCAN-USB2 --gtest_output=xml:TestReport_TouCAN-USB.xml --run_all=YES --smoketest_frames=100000` [...]
@@ -100,16 +96,16 @@ _All rights reserved._
   - `$(PROJROOT)/Binaries/*.*`
   - `$(PROJROOT)/Includes/*.*`
   - `$(PROJROOT)/README.md`
-  - `$(PROJROOT)/LICENSE`
+  - `$(PROJROOT)/LICENSE.*`
 8. Double check and update the [`README.md`](https://github.com/mac-can/RusokuCAN/blob/main/README.md) on GitHub (or insert just a blank).
 
 ### Procedure
 
 1. Click on `Draft a new release` in the [GitHub](https://github.com/mac-can/RusokuCAN) repo.
 2. Fill out all required fields:
-  - Tag version: e.g `v0.2.6` (cf. semantic versioning)
+  - Tag version: e.g `v0.3` (cf. semantic versioning)
   - Target: `main` (default branch)
-  - Release title: e.g. `Release of November 12, 2023`
+  - Release title: e.g. `Release of January 19, 2038`
   - Change-log: list all major changes, e.g. from commit comments
   - Assets: drag and drop the artifacts archive (see above)
 3. Click on `Publish release`.
