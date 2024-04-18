@@ -2,6 +2,8 @@
 
 _Copyright &copy; 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)_
 
+![macOS Build](https://github.com/mac-can/RusokuCAN.dylib/actions/workflows/macos-build.yml/badge.svg)
+
 # Running CAN on Mac&reg;
 
 _Running CAN on Mac_ is the mission of the MacCAN project.
