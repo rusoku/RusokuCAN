@@ -69,12 +69,21 @@
 
 /*  -----------  options  ------------------------------------------------
  */
+#if (OPTION_CAN_2_0_ONLY != 0)
+#ifdef _MSC_VER
+#pragma message ( "Compilation with legacy CAN 2.0 frame format!" )
+#else
+#warning Compilation with legacy CAN 2.0 frame format!
+#endif
+#endif
 #if (OPTION_CANAPI_TOUCAN_DYLIB != 0)
 __attribute__((constructor))
 static void _initializer() {
+    // default initializer
 }
 __attribute__((destructor))
 static void _finalizer() {
+    // default finalizer
 }
 #define EXPORT  __attribute__((visibility("default")))
 #else
@@ -1109,7 +1118,6 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
 
 /*  -----------  revision control  ---------------------------------------
  */
-
 EXPORT
 char *can_version(void)
 {

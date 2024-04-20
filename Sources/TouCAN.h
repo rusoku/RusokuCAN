@@ -63,7 +63,7 @@
 #endif
 #define TOUCAN_LIBRARY_VENDOR  "UV Software, Berlin"
 #define TOUCAN_LIBRARY_LICENSE  "BSD-2-Clause OR GPL-3.0-or-later"
-#define TOUCAN_LIBRARY_COPYRIGHT  "Copyright (c) 2020-2024 Uwe Vogt, UV Software, Berlin"
+#define TOUCAN_LIBRARY_COPYRIGHT  "Copyright (c) 2020-2024 by Uwe Vogt, UV Software, Berlin"
 #define TOUCAN_LIBRARY_HAZARD_NOTE  "If you connect your CAN device to a real CAN network when using this library,\n" \
                                     "you might damage your application."
 /// \}
@@ -167,5 +167,4 @@ public:
 #define TOUCAN_PROPERTY_DEVICE_ID           (TOUCAN_GET_DEVICE_ID)
 #define TOUCAN_PROPERTY_VENDOR_URL          (TOUCAN_GET_VENDOR_URL)
 /// \}
-
 #endif // TOUCAN_H_INCLUDED

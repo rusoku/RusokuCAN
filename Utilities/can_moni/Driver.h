@@ -23,9 +23,13 @@
 #include "TouCAN.h"
 
 #if (OPTION_CAN_2_0_ONLY != 0)
-#error Compilation with legacy CAN 2.0 frame format!
+#ifdef _MSC_VER
+#pragma message ( "Compilation with legacy CAN 2.0 frame format!" )
 #else
-#define CAN_FD_SUPPORTED  0  // set to non-zero once CAN FD is supported
+#warning Compilation with legacy CAN 2.0 frame format!
+#endif
+#else
+#define CAN_FD_SUPPORTED   0  // set to non-zero once CAN FD is supported
 #endif
 #define BITRATE_800K_UNSUPPORTED  1  // set to zero if 800kbps is supported
 

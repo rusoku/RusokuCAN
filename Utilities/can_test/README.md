@@ -1,5 +1,5 @@
 __CAN Tester for Rusoku TouCAN USB Interfaces, Version 0.3__ \
-Copyright &copy; 2008-2010,2014-2024 by Uwe Vogt, UV Software, Berlin
+Copyright &copy; 2008-2010,2012-2024 by Uwe Vogt, UV Software, Berlin
 
 ```
 Usage: can_test <interface> [<option>...]
