@@ -98,7 +98,7 @@ static void _finalizer() {
 #define INVALID_HANDLE          (-1)
 #define IS_HANDLE_VALID(hnd)    ((0 <= (hnd)) && ((hnd) < CAN_MAX_HANDLES))
 #ifndef DLC2LEN
-#define DLC2LEN(x)              dlc_table[(x) & 0xF]
+#define DLC2LEN(x)              dlc_table[((x) < 16) ? (x) : 15]
 #endif
 #ifndef LEN2DLC
 #define LEN2DLC(x)              ((x) > 48) ? 0xF : \
@@ -113,6 +113,12 @@ static void _finalizer() {
 #define FILTER_STD_MASK         (uint32_t)(0x000)
 #define FILTER_XTD_CODE         (uint32_t)(0x00000000)
 #define FILTER_XTD_MASK         (uint32_t)(0x00000000)
+
+#define LIB_ID                  TOUCAN_LIB_ID
+#define LIB_DLLNAME             TOUCAN_LIB_WRAPPER
+#define DEV_VENDOR              TOUCAN_LIB_VENDOR
+#define DEV_DLLNAME             TOUCAN_LIB_CANLIB
+#define NUM_CHANNELS            TOUCAN_BOARDS
 
 /*  -----------  types  --------------------------------------------------
  */
@@ -140,19 +146,20 @@ typedef struct {                        // TouCAN interface:
 
 /*  -----------  prototypes  ---------------------------------------------
  */
+static void var_init(void);             // initialize variables
+
 static int set_filter(int handle, uint64_t filter, bool xtd);
 static int reset_filter(int handle);
+
 static int lib_parameter(uint16_t param, void *value, size_t nbyte);
 static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte);
-
-static void var_init(void);             // initialize variables
 
 /*  -----------  variables  ----------------------------------------------
  */
 static const char version[] = "CAN API V3 for Rusoku TouCAN USB Interfaces, Version " VERSION_STRING;
 
 EXPORT
-can_board_t can_boards[8+1] = {  // list of CAN Interface channels:
+can_board_t can_boards[NUM_CHANNELS+1] = {  // list of supported CAN channels
     {TOUCAN_USB_CHANNEL0, (char *)"TouCAN-USB1"},
     {TOUCAN_USB_CHANNEL1, (char *)"TouCAN-USB2"},
     {TOUCAN_USB_CHANNEL2, (char *)"TouCAN-USB3"},
@@ -207,7 +214,6 @@ EXPORT
 int can_init(int32_t channel, uint8_t mode, const void *param)
 {
     int rc = CANERR_FATAL;              // return value
-
 
     if (!init) {                        // when not initialized:
         var_init();                     //   initialize the variables
@@ -392,7 +398,7 @@ int can_reset(int handle)
 #ifndef OPTION_CANAPI_RETVALS
         return CANERR_OFFLINE;
 #else
-        // note: can_reset shall return CANERR_NOERROR even when
+        // note: can_reset shall return CANERR_NOERROR even if
         //       the CAN controller has not been started
         return CANERR_NOERROR;
 #endif
@@ -560,7 +566,7 @@ int can_bitrate(int handle, can_bitrate_t *bitrate, can_speed_t *speed)
     if (speed)
         memcpy(speed, &tmpSpeed, sizeof(can_speed_t));
 #ifdef OPTION_CANAPI_RETVALS
-    // note: can_bitrate shall return CANERR_OFFLINE when
+    // note: can_bitrate shall return CANERR_OFFLINE if
     //       the CAN controller has not been started
     if (can[handle].status.can_stopped)
         rc = CANERR_OFFLINE;
@@ -597,13 +603,12 @@ char *can_hardware(int handle)
     if (!can[handle].device.configured) // must be an opened handle
         return NULL;
 
-    // get hardware version (zero-terminated string)
+    // return hardware version (zero-terminated string)
     uint8_t major = (uint8_t)(can[handle].device.deviceInfo.hardware >> 24);
     uint8_t minor = (uint8_t)(can[handle].device.deviceInfo.hardware >> 16);
     uint8_t patch = (uint8_t)(can[handle].device.deviceInfo.hardware >> 8);
     sprintf(string, "%s, hardware %u.%u.%u (s/n %08x)", can[handle].device.deviceInfo.name,
             major, minor, patch, can[handle].device.deviceInfo.serialNo);
-
     return string;
 }
 
@@ -619,19 +624,17 @@ char *can_firmware(int handle)
     if (!can[handle].device.configured) // must be an opened handle
         return NULL;
 
-    // get firmware version (zero-terminated string)
+    // return firmware version (zero-terminated string)
     uint8_t major = (uint8_t)(can[handle].device.deviceInfo.firmware >> 24);
     uint8_t minor = (uint8_t)(can[handle].device.deviceInfo.firmware >> 16);
     uint8_t patch = (uint8_t)(can[handle].device.deviceInfo.firmware >> 8);
     sprintf(string, "%s, firmware %u.%u.%u (%s)", can[handle].device.deviceInfo.name,
             major, minor, patch, can[handle].device.website);
-
     return string;
 }
 
 /*  -----------  local functions  ----------------------------------------
  */
-
 static void var_init(void)
 {
     int i;
@@ -737,7 +740,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_LIBRARY_ID:        // library id of the library (int32_t)
         if (nbyte >= sizeof(int32_t)) {
-            *(int32_t*)value = (int32_t)TOUCAN_LIB_ID;
+            *(int32_t*)value = (int32_t)LIB_ID;
             rc = CANERR_NOERROR;
         }
         break;
@@ -748,20 +751,20 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         }
         break;
     case CANPROP_GET_LIBRARY_DLLNAME:   // file name of the library (char[256])
-        if ((nbyte > strlen(TOUCAN_LIB_WRAPPER)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, TOUCAN_LIB_WRAPPER);
+        if ((nbyte > strlen(LIB_DLLNAME)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+            strcpy((char*)value, LIB_DLLNAME);
             rc = CANERR_NOERROR;
         }
         break;
     case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[256])
-        if ((nbyte > strlen(TOUCAN_LIB_VENDOR)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, TOUCAN_LIB_VENDOR);
+        if ((nbyte > strlen(DEV_VENDOR)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+            strcpy((char*)value, DEV_VENDOR);
             rc = CANERR_NOERROR;
         }
         break;
     case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[256])
-        if ((nbyte > strlen(TOUCAN_LIB_CANLIB)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, TOUCAN_LIB_CANLIB);
+        if ((nbyte > strlen(DEV_DLLNAME)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+            strcpy((char*)value, DEV_DLLNAME);
             rc = CANERR_NOERROR;
         }
         break;
@@ -770,7 +773,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         rc = (can_boards[idx_board].type != EOF) ? CANERR_NOERROR : CANERR_RESOURCE;
         break;
     case CANPROP_SET_NEXT_CHANNEL:      // set index to the next entry in the interface list (NULL)
-        if ((0 <= idx_board) && (idx_board < TOUCAN_BOARDS)) {
+        if ((0 <= idx_board) && (idx_board < NUM_CHANNELS)) {
             if (can_boards[idx_board].type != EOF)
                 idx_board++;
             rc = (can_boards[idx_board].type != EOF) ? CANERR_NOERROR : CANERR_RESOURCE;
@@ -780,7 +783,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_CHANNEL_NO:        // get channel no. at actual index in the interface list (int32_t)
         if (nbyte >= sizeof(int32_t)) {
-            if ((0 <= idx_board) && (idx_board < TOUCAN_BOARDS) &&
+            if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 *(int32_t*)value = (int32_t)can_boards[idx_board].type;
                 rc = CANERR_NOERROR;
@@ -791,7 +794,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_CHANNEL_NAME:      // get channel name at actual index in the interface list (char[256])
         if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            if ((0 <= idx_board) && (idx_board < TOUCAN_BOARDS) &&
+            if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, can_boards[idx_board].name, nbyte);
                 ((char*)value)[(nbyte - 1)] = '\0';
@@ -803,9 +806,9 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_CHANNEL_DLLNAME:   // get file name of the DLL at actual index in the interface list (char[256])
         if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            if ((0 <= idx_board) && (idx_board < TOUCAN_BOARDS) &&
+            if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
-                strncpy((char*)value, TOUCAN_LIB_CANLIB, nbyte);
+                strncpy((char*)value, DEV_DLLNAME, nbyte);
                 ((char*)value)[(nbyte - 1)] = '\0';
                 rc = CANERR_NOERROR;
             }
@@ -815,9 +818,9 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_CHANNEL_VENDOR_ID: // get library id at actual index in the interface list (int32_t)
         if (nbyte >= sizeof(int32_t)) {
-            if ((0 <= idx_board) && (idx_board < TOUCAN_BOARDS) &&
+            if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
-                *(int32_t*)value = (int32_t)TOUCAN_LIB_ID;
+                *(int32_t*)value = (int32_t)LIB_ID;
                 rc = CANERR_NOERROR;
             }
             else
@@ -826,9 +829,9 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_CHANNEL_VENDOR_NAME: // get vendor name at actual index in the interface list (char[256])
         if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            if ((0 <= idx_board) && (idx_board < TOUCAN_BOARDS) &&
+            if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
-                strncpy((char*)value, TOUCAN_LIB_VENDOR, nbyte);
+                strncpy((char*)value, DEV_VENDOR, nbyte);
                 ((char*)value)[(nbyte - 1)] = '\0';
                 rc = CANERR_NOERROR;
             }
@@ -858,6 +861,13 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
     case CANPROP_SET_FILTER_11BIT:      // set value for acceptance filter code and mask for 11-bit identifier (uint64_t)
     case CANPROP_SET_FILTER_29BIT:      // set value for acceptance filter code and mask for 29-bit identifier (uint64_t)
     case CANPROP_SET_FILTER_RESET:      // reset acceptance filter code and mask to default values (NULL)
+    case TOUCAN_GET_HARDWARE_VERSION:   // TouCAN USB: hardware version as "0xggrrss00" (uint32_t)
+    case TOUCAN_GET_FIRMWARE_VERSION:   // TouCAN USB: firmware version as "0xggrrss00" (uint32_t)
+    case TOUCAN_GET_BOOTLOADER_VERSION: // TouCAN USB: boot-loader version as "0xggrrss00" (uint32_t)
+    case TOUCAN_GET_SERIAL_NUMBER:      // TouCAN USB: serial no. in hex (uint32_t)
+    case TOUCAN_GET_VID_PID:            // TouCAN USB: VID & PID (uint32_t)
+    case TOUCAN_GET_DEVICE_ID:          // TouCAN USB: device id. (uint32_t)
+    case TOUCAN_GET_VENDOR_URL:         // TouCAN USB: URL of Rusoku's website (uint32_t)
         // note: a device parameter requires a valid handle.
         if (!init)
             rc = CANERR_NOTINIT;
@@ -909,7 +919,8 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[256])
         if ((nbyte > strlen("(driverless)")) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, "(driverless)");  // note: there is no kernel driver!
+            strncpy((char*)value, "(driverless)", nbyte);  // note: there is no kernel driver!
+            ((char*)value)[nbyte-1] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
@@ -1110,7 +1121,7 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
             }
         break;
     default:
-        rc = lib_parameter(param, value, nbyte);
+        rc = lib_parameter(param, value, nbyte);   // library properties (see lib_parameter)
         break;
     }
     return rc;

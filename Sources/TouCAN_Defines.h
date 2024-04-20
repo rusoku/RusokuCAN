@@ -45,9 +45,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with MacCAN-TouCAN.  If not, see <https://www.gnu.org/licenses/>.
  */
- /** @addtogroup  can_api
-  *  @{
-  */
+/** @addtogroup  can_api
+ *  @{
+ */
 #ifndef CANAPI_TOUCAN_H_INCLUDED
 #define CANAPI_TOUCAN_H_INCLUDED
 
@@ -145,5 +145,5 @@ extern "C" {
 /*  ----------------------------------------------------------------------
  *  Uwe Vogt,  UV Software,  Chausseestrasse 33 A,  10115 Berlin,  Germany
  *  Tel.: +49-30-46799872,  Fax: +49-30-46799873,  Mobile: +49-170-3801903
- *  E-Mail: uwe.vogt@uv-software.de,  Homepage: http://www.uv-software.de/
+ *  E-Mail: uwe.vogt@uv-software.de, Homepage: https://www.uv-software.de/
  */
