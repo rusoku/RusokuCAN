@@ -170,6 +170,7 @@ incdir:
 	@cp $(SOURCE_DIR)/TouCAN_Defines.h $(INCDIR)
 	@cp $(SOURCE_DIR)/TouCAN_Defaults.h $(INCDIR)
 	@cp $(CANAPI_DIR)/can_api.h $(INCDIR)
+	@cp $(CANAPI_DIR)/can_btr.h $(INCDIR)
 	@cp $(CANAPI_DIR)/CANAPI_Types.h $(INCDIR)
 	@cp $(CANAPI_DIR)/CANAPI_Defines.h $(INCDIR)
 	@cp $(CANAPI_DIR)/CANBTR_Defaults.h $(INCDIR)
