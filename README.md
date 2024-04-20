@@ -20,6 +20,8 @@ and some C/C++, Swift, and Python example programs.
 _CAN API V3_ is a wrapper specification to have a uniform CAN Interface API for various CAN interfaces from different vendors running under multiple operating systems.
 See header file `CANAPI.h` for the CAN API V3 wrapper specification.
 
+Note: _This project does not aim to implement Rusoku´s CANAL library on macOS._
+
 ### TouCAN API
 
 ```C++
