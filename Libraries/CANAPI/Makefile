@@ -111,7 +111,7 @@ INSTALL = /usr/local/lib
 DEFINES += -DOPTION_CANAPI_TOUCAN_DYLIB=1
 
 CFLAGS += -O2 -Wall -Wextra -Wno-parentheses \
-	-fmessage-length=0 -fno-strict-aliasing \
+	-fno-strict-aliasing \
 	$(DEFINES) \
 	$(HEADERS)
 
@@ -120,10 +120,10 @@ CXXFLAGS += -O2 -g -Wall -Wextra -pthread \
 	$(HEADERS)
 
 LDFLAGS += -nostartfiles -dynamiclib -fvisibility=hidden \
-	-Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation \
 	-Wl,-install_name,@rpath/$(INSTALL_NAME) \
 	-Wl,-current_version,$(CURRENT_VERSION) \
-	-Wl,-compatibility_version,$(COMPATIBILITY_VERSION)
+	-Wl,-compatibility_version,$(COMPATIBILITY_VERSION) \
+	-Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation
 
 LTFLAGS += -static
 
