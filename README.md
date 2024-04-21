@@ -96,7 +96,7 @@ uv-pc013mac:TouCAN eris$ make all
 uv-pc013mac:TouCAN eris$ sudo make install
 uv-pc013mac:TouCAN eris$
 ```
-_(The version number of the library can be adapted by editing the appropriated `Makefile` and changing the variable `VERSION` accordingly. Don´t forget to set the version number also in the source files.)_
+_(The version number of the library can be adapted by editing the appropriated `Makefile` and changing the variable `VERSION` accordingly. Don´t forget to set the version number also in the header file `Version.h`.)_
 
 #### libTouCAN
 
