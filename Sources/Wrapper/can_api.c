@@ -251,7 +251,7 @@ int can_exit(int handle)
     if (handle != CANEXIT_ALL) {
         if (!IS_HANDLE_VALID(handle))   // must be a valid handle
             return CANERR_HANDLE;
-        if (!can[handle].device.configured) // must be an opened handle
+        if (!can[handle].device.configured) // must be an open handle
             return CANERR_HANDLE;
         /*if (!can[handle].status.can_stopped) // go to CAN INIT mode (bus off)*/
             (void)TouCAN_StopCan(&can[handle].device);
@@ -262,7 +262,7 @@ int can_exit(int handle)
     }
     else {
         for (i = 0; i < CAN_MAX_HANDLES; i++) {
-            if (can[i].device.configured) // must be an opened handle
+            if (can[i].device.configured) // must be an open handle
             {
                 /*if (!can[handle].status.can_stopped) // go to CAN INIT mode (bus off)*/
                     (void)TouCAN_StopCan(&can[i].device);
@@ -294,14 +294,14 @@ int can_kill(int handle)
     if (handle != CANEXIT_ALL) {
         if (!IS_HANDLE_VALID(handle))   // must be a valid handle
             return CANERR_HANDLE;
-        if (!can[handle].device.configured) // must be an opened handle
+        if (!can[handle].device.configured) // must be an open handle
             return CANERR_HANDLE;
         if ((rc = TouCAN_SignalChannel(&can[handle].device)) < CANERR_NOERROR)
             return rc;
     }
     else {
         for (i = 0; i < CAN_MAX_HANDLES; i++) {
-            if (can[i].device.configured) // must be an opened handle
+            if (can[i].device.configured) // must be an open handle
                 (void)TouCAN_SignalChannel(&can[i].device);
         }
     }
@@ -320,7 +320,7 @@ int can_start(int handle, const can_bitrate_t *bitrate)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     if (bitrate == NULL)                // check for null-pointer
         return CANERR_NULLPTR;
@@ -392,7 +392,7 @@ int can_reset(int handle)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     if (can[handle].status.can_stopped) // must be running
 #ifndef OPTION_CANAPI_RETVALS
@@ -417,7 +417,7 @@ int can_write(int handle, const can_message_t *message, uint16_t timeout)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     if (message == NULL)                // check for null-pointer
         return CANERR_NULLPTR;
@@ -460,7 +460,7 @@ int can_read(int handle, can_message_t *message, uint16_t timeout)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     if (message == NULL)                // check for null-pointer
         return CANERR_NULLPTR;
@@ -487,7 +487,7 @@ int can_status(int handle, uint8_t *status)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
 
     // get status-register from device (CAN API V1 compatible)
@@ -513,7 +513,7 @@ int can_busload(int handle, uint8_t *load, uint8_t *status)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
 
 #if (0)
@@ -548,7 +548,7 @@ int can_bitrate(int handle, can_bitrate_t *bitrate, can_speed_t *speed)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
 
     // get bit-rate settings from device
@@ -585,7 +585,7 @@ int can_property(int handle, uint16_t param, void *value, uint32_t nbyte)
         return CANERR_NOTINIT;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return CANERR_HANDLE;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     // note: device properties must be queried with a valid handle
     return drv_parameter(handle, param, value, (size_t)nbyte);
@@ -600,7 +600,7 @@ char *can_hardware(int handle)
         return NULL;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return NULL;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return NULL;
 
     // return hardware version (zero-terminated string)
@@ -621,7 +621,7 @@ char *can_firmware(int handle)
         return NULL;
     if (!IS_HANDLE_VALID(handle))       // must be a valid handle
         return NULL;
-    if (!can[handle].device.configured) // must be an opened handle
+    if (!can[handle].device.configured) // must be an open handle
         return NULL;
 
     // return firmware version (zero-terminated string)
@@ -722,7 +722,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
     case CANPROP_GET_VERSION:           // version number of the library (uint16_t)
         if (nbyte >= sizeof(uint16_t)) {
             *(uint16_t*)value = ((uint16_t)VERSION_MAJOR << 8)
-                              | ((uint16_t)VERSION_MINOR & 0xFu);
+                              | ((uint16_t)VERSION_MINOR & 0xFU);
             rc = CANERR_NOERROR;
         }
         break;
@@ -962,11 +962,11 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_BUSLOAD:           // current bus load of the CAN controller (uint16_t)
         if (nbyte >= sizeof(uint8_t)) {
-            if ((rc = can_busload(handle, &load, NULL)) == CANERR_NOERROR) {  // FIXME: legacy resolution
-                if (nbyte >= sizeof(uint16_t))
-                    *(uint16_t*)value = (uint16_t)load * 100U;  // 0 - 10000 ==> 0.00% - 100.00%
+            if ((rc = can_busload(handle, &load, NULL)) == CANERR_NOERROR) {
+                if (nbyte > sizeof(uint8_t))
+                    *(uint16_t*)value = (uint16_t)load * 100U;  // 0..10000 ==> 0.00%..100.00%
                 else
-                    *(uint8_t*)value = (uint8_t)load;           // 0  -  100 ==> 0.00% - 100.00%
+                    *(uint8_t*)value = (uint8_t)load;           // 0..100% (note: legacy resolution)
                 rc = CANERR_NOERROR;
             }
         }
