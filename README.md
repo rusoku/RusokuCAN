@@ -1,6 +1,6 @@
 ### macOS&reg; User-Space Driver for TouCAN USB Interfaces from Rusoku
 
-_Copyright &copy; 2020-2024  Uwe Vogt, UV Software, Berlin (info@mac-can.com)_
+_Copyright &copy; 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)_
 
 ![macOS Build](https://github.com/mac-can/RusokuCAN.dylib/actions/workflows/macos-build.yml/badge.svg)
 
