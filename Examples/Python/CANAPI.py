@@ -52,9 +52,9 @@
     Interface API for various CAN interfaces from different
     vendors running under multiple operating systems.
 
-    $Author: makemake $
+    $Author: quaoar $
 
-    $Rev: 1275 $
+    $Rev: 1278 $
 """
 from ctypes import *
 import platform
@@ -69,7 +69,7 @@ if platform.system() == "Darwin":
 
 # CAN API V3 - Python Wrapper
 #
-CAN_API_V3_PYTHON = {'major': 0, 'minor': 3, 'patch': 0}
+CAN_API_V3_PYTHON = {'major': 0, 'minor': 3, 'patch': 1}
 
 # CAN Identifier Ranges
 #
@@ -721,7 +721,7 @@ class CANAPI:
         """
         try:
             self.__m_library.can_hardware.restype = c_char_p
-            version_c = self.__m_library.can_hardware()
+            version_c = self.__m_library.can_hardware(self.__m_handle)
             if version_c is not None:
                 return version_c.decode('utf-8')
             else:
@@ -742,7 +742,7 @@ class CANAPI:
         """
         try:
             self.__m_library.can_firmware.restype = c_char_p
-            version_c = self.__m_library.can_firmware()
+            version_c = self.__m_library.can_firmware(self.__m_handle)
             if version_c is not None:
                 return version_c.decode('utf-8')
             else:
@@ -916,5 +916,5 @@ if __name__ == '__main__':
     # have a great time
     print('Bye, bye!')
 
-# * $Id: CANAPI.py 1275 2024-04-21 20:32:51Z makemake $ *** (c) UV Software, Berlin ***
+# * $Id: CANAPI.py 1278 2024-04-23 08:34:36Z quaoar $ *** (c) UV Software, Berlin ***
 #
