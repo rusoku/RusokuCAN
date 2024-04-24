@@ -1,7 +1,7 @@
 #
 #	CAN Monitor for Rusoku TouCAN USB Interfaces (CAN API V3)
 #
-#	Copyright (c) 2007,2012-2023  Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+#	Copyright (c) 2007,2012-2024  Uwe Vogt, UV Software, Berlin (info@uv-software.com)
 #
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -14,12 +14,17 @@
 #	GNU General Public License for more details.
 #
 #	You should have received a copy of the GNU General Public License
-#	along with this program   If not, see <http://www.gnu.org/licenses/>.
+#	along with this program   If not, see <https://www.gnu.org/licenses/>.
 #
 current_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown OS')
 current_OS := $(patsubst CYGWIN%,Cygwin,$(current_OS))
 current_OS := $(patsubst MINGW%,MinGW,$(current_OS))
 current_OS := $(patsubst MSYS%,MinGW,$(current_OS))
+
+
+TARGET  = can_moni
+
+INSTALL = ~/bin
 
 PROJ_DIR = ../..
 HOME_DIR = .
@@ -28,18 +33,7 @@ MAIN_DIR = ./Sources
 DRIVER_DIR = $(PROJ_DIR)/Sources
 CANAPI_DIR = $(PROJ_DIR)/Sources/CANAPI
 
-OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/Timer.o \
-	$(OUTDIR)/Message.o $(OUTDIR)/can_msg.o \
-	 $(BINDIR)/libTouCAN.a
-
-
-ifeq ($(current_OS),Darwin) # macOS - libTouCAN.dylib
-
-VERSION = 0.2.6
-
-TARGET  = can_moni
-
-INSTALL = ~/bin
+OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/Timer.o $(OUTDIR)/Message.o $(OUTDIR)/can_msg.o
 
 DEFINES = -DOPTION_CANAPI_DRIVER=1 \
 	-DOPTION_CANAPI_COMPANIONS=1
@@ -48,6 +42,11 @@ HEADERS = -I$(MAIN_DIR) \
 	-I$(HOME_DIR) \
 	-I$(DRIVER_DIR) \
 	-I$(CANAPI_DIR)
+
+
+ifeq ($(current_OS),Darwin)  # macOS - libTouCAN.dylib
+
+OBJECTS  += $(BINDIR)/libTouCAN.a
 
 CFLAGS += -O2 -Wall -Wextra -Wno-parentheses \
 	-fno-strict-aliasing \
@@ -58,9 +57,7 @@ CXXFLAGS += -O2 -g -Wall -Wextra -pthread \
 	$(DEFINES) \
 	$(HEADERS)
 
-LIBRARIES =
-
-LDFLAGS  += -lpthread \
+LDFLAGS  +=  -rpath /usr/local/lib \
 	-Wl,-framework -Wl,IOKit -Wl,-framework -Wl,CoreFoundation
 
 ifeq ($(BINARY),UNIVERSAL)
@@ -68,6 +65,8 @@ CFLAGS += -arch arm64 -arch x86_64
 CXXFLAGS += -arch arm64 -arch x86_64
 LDFLAGS += -arch arm64 -arch x86_64
 endif
+
+LIBRARIES = -lpthread
 
 CXX = clang++
 CC = clang

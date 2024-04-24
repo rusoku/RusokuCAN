@@ -1,8 +1,8 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //
-//  CAN Monitor for generic Interfaces (CAN API V3)
+//  CAN Monitor for Rusoku TouCAN USB Adapters (CAN API V3)
 //
-//  Copyright (c) 2007,2012-2023 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+//  Copyright (c) 2007,2012-2024 Uwe Vogt, UV Software, Berlin (info@uv-software.com)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,38 +15,35 @@
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef DRIVER_H_INCLUDED
 #define DRIVER_H_INCLUDED
-#include "build_no.h"
-#define VERSION_MAJOR      0
-#define VERSION_MINOR      2
-#define VERSION_PATCH      6
-#define VERSION_BUILD      BUILD_NO
-#define VERSION_STRING     TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) " (" TOSTRING(BUILD_NO) ")"
-#if defined(_WIN64)
-#define PLATFORM          "x64"
-#elif defined(_WIN32)
-#define PLATFORM          "x86"
-#elif defined(__linux__)
-#define PLATFORM          "Linux"
-#elif defined(__APPLE__)
-#define PLATFORM          "macOS"
-#elif defined(__CYGWIN__)
-#define PLATFORM          "Cygwin"
-#else
-#error Unsupported architecture
-#endif
+
+#include "TouCAN.h"
+
 #if (OPTION_CAN_2_0_ONLY != 0)
-#error Compilation with legacy CAN 2.0 frame format!
+#ifdef _MSC_VER
+#pragma message ( "Compilation with legacy CAN 2.0 frame format!" )
+#else
+#warning Compilation with legacy CAN 2.0 frame format!
+#endif
 #else
 #define CAN_FD_SUPPORTED  0  // set to non-zero once CAN FD is supported
 #endif
-#define MONITOR_INTEFACE  "Rusoku TouCAN USB Interfaces"
-#define MONITOR_COPYRIGHT "2007,2012-2023 by Uwe Vogt, UV Software, Berlin"
+#define BITRATE_800K_UNSUPPORTED  1  // set to zero if 800kbps is supported
 
-#include "TouCAN.h"
+#define MONITOR_INTEFACE  "Rusoku TouCAN USB Interfaces"
+#define MONITOR_COPYRIGHT "2007,2012-2024 by Uwe Vogt, UV Software, Berlin"
+
+#define BITRATE_1M(x)    TOUCAN_BR_1M(x)
+#define BITRATE_500K(x)  TOUCAN_BR_500K(x)
+#define BITRATE_250K(x)  TOUCAN_BR_250K(x)
+#define BITRATE_125K(x)  TOUCAN_BR_125K(x)
+#define BITRATE_100K(x)  TOUCAN_BR_100K(x)
+#define BITRATE_50K(x)   TOUCAN_BR_50K(x)
+#define BITRATE_20K(x)   TOUCAN_BR_20K(x)
+#define BITRATE_10K(x)   TOUCAN_BR_10K(x)
 
 typedef CTouCAN  CCanDriver;
 

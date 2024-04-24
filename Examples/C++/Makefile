@@ -1,5 +1,5 @@
 BINARIES = ../../Binaries
-INCLUDES = -I../../INCLUDES
+INCLUDES = -I../../Includes
 
 TARGET1 = can_recv
 SOURCE1 = $(TARGET1).cpp $(BINARIES)/libTouCAN.a

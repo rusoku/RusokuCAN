@@ -1,11 +1,37 @@
-/*  SPDX-License-Identifier: GPL-3.0-or-later */
+/*  SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-or-later */
 /*
  *  TouCAN - macOS User-Space Driver for Rusoku TouCAN USB Adapters
  *
- *  Copyright (C) 2021-2023  Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+ *  Copyright (c) 2021-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)
+ *  All rights reserved.
  *
  *  This file is part of MacCAN-TouCAN.
  *
+ *  MacCAN-TouCAN is dual-licensed under the BSD 2-Clause "Simplified" License
+ *  and under the GNU General Public License v3.0 (or any later version). You can
+ *  choose between one of them if you use MacCAN-TouCAN in whole or in part.
+ *
+ *  BSD 2-Clause "Simplified" License:
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *  1. Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
+ *  2. Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ *  MacCAN-TouCAN IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ *  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ *  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF MacCAN-TouCAN, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ *  GNU General Public License v3.0 or later:
  *  MacCAN-TouCAN is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +46,7 @@
  *  along with MacCAN-TouCAN.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "TouCAN_USB_Driver.h"
-#include "TouCAN_USB.h"
+#include "TouCAN_USB_CmdMsg.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -33,22 +59,22 @@
 #include "MacCAN_Debug.h"
 #include <inttypes.h>
 
-#define TOUCAN_MSG_STD_FRAME  (UInt8)0x00  // CANAL_IDFLAG_STANDARD
-#define TOUCAN_MSG_XTD_FRAME  (UInt8)0x01  // CANAL_IDFLAG_EXTENDED
-#define TOUCAN_MSG_RTR_FRAME  (UInt8)0x02  // CANAL_IDFLAG_RTR
-#define TOUCAN_MSG_STS_FRAME  (UInt8)0x04  // CANAL_IDFLAG_STATUS
+#define TOUCAN_MSG_STD_FRAME  (UInt8)0x00
+#define TOUCAN_MSG_XTD_FRAME  (UInt8)0x01
+#define TOUCAN_MSG_RTR_FRAME  (UInt8)0x02
+#define TOUCAN_MSG_STS_FRAME  (UInt8)0x04
 
-#define TOUCAN_STS_OK         (UInt8)0x00  // CANAL_STATUSMSG_OK
-#define TOUCAN_STS_OVERRUN    (UInt8)0x01  // CANAL_STATUSMSG_OVERRUN
-#define TOUCAN_STS_BUSLIGHT   (UInt8)0x02  // CANAL_STATUSMSG_BUSLIGHT
-#define TOUCAN_STS_BUSHEAVY   (UInt8)0x03  // CANAL_STATUSMSG_BUSHEAVY
-#define TOUCAN_STS_BUSOFF     (UInt8)0x04  // CANAL_STATUSMSG_BUSOFF
-#define TOUCAN_STS_STUFF      (UInt8)0x20  // CANAL_STATUSMSG_STUFF
-#define TOUCAN_STS_FORM       (UInt8)0x21  // CANAL_STATUSMSG_FORM
-#define TOUCAN_STS_ACK        (UInt8)0x23  // CANAL_STATUSMSG_ACK
-#define TOUCAN_STS_BIT1       (UInt8)0x24  // CANAL_STATUSMSG_BIT1
-#define TOUCAN_STS_BIT0       (UInt8)0x25  // CANAL_STATUSMSG_BIT0
-#define TOUCAN_STS_CRC        (UInt8)0x27  // CANAL_STATUSMSG_CRC
+#define TOUCAN_STS_OK         (UInt8)0x00
+#define TOUCAN_STS_OVERRUN    (UInt8)0x01
+#define TOUCAN_STS_BUSLIGHT   (UInt8)0x02
+#define TOUCAN_STS_BUSHEAVY   (UInt8)0x03
+#define TOUCAN_STS_BUSOFF     (UInt8)0x04
+#define TOUCAN_STS_STUFF      (UInt8)0x20
+#define TOUCAN_STS_FORM       (UInt8)0x21
+#define TOUCAN_STS_ACK        (UInt8)0x23
+#define TOUCAN_STS_BIT1       (UInt8)0x24
+#define TOUCAN_STS_BIT0       (UInt8)0x25
+#define TOUCAN_STS_CRC        (UInt8)0x27
 
 static void ReceptionCallback(void *refCon, UInt8 *buffer, UInt32 length);
 static int TouCAN_EncodeMessage(UInt8 *buffer, const TouCAN_CanMessage_t *message);
@@ -122,34 +148,34 @@ CANUSB_Return_t TouCAN_USB_InitializeChannel(TouCAN_Device_t *device, TouCAN_OpM
         goto end_init;
     }
     /* get device information (don't care about the result) */
-    retVal = TouCAN_get_hardware_version(device->handle, &device->deviceInfo.hardware);
+    retVal = TouCAN_USB_CmdGetHardwareVersion(device->handle, &device->deviceInfo.hardware);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): hardware version could not be read (%i)\n", device->name, device->handle, retVal);
     }
-    retVal = TouCAN_get_firmware_version(device->handle, &device->deviceInfo.firmware);
+    retVal = TouCAN_USB_CmdGetFirmwareVersion(device->handle, &device->deviceInfo.firmware);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): firmware version could not be read (%i)\n", device->name, device->handle, retVal);
     }
-    retVal = TouCAN_get_bootloader_version(device->handle, &device->deviceInfo.bootloader);
+    retVal = TouCAN_USB_CmdGetBootloaderVersion(device->handle, &device->deviceInfo.bootloader);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): bootloader version could not be read (%i)\n", device->name, device->handle, retVal);
     }
-    retVal = TouCAN_get_serial_number(device->handle, &device->deviceInfo.serialNo);
+    retVal = TouCAN_USB_CmdGetSerialNumber(device->handle, &device->deviceInfo.serialNo);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): serial no. could not be read (%i)\n", device->name, device->handle, retVal);
     }
-    retVal = TouCAN_get_device_id(device->handle, &device->deviceInfo.deviceId);
+    retVal = TouCAN_USB_CmdGetDeviceId(device->handle, &device->deviceInfo.deviceId);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): device id. could not be read (%i)\n", device->name, device->handle, retVal);
     }
-    retVal = TouCAN_get_vid_pid(device->handle, &device->deviceInfo.vid_pid);
+    retVal = TouCAN_USB_CmdGetVidPid(device->handle, &device->deviceInfo.vid_pid);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): VID & PID could not be read (%i)\n", device->name, device->handle, retVal);
     }
     /* initialize with default bit-rate and mode flags */
     /* note: CAN API provides this at a later stage */
-    retVal = TouCAN_init(device->handle, device->bitRate.brp, device->bitRate.tseg1,
-                         device->bitRate.tseg2, device->bitRate.sjw, 0x00000000U);
+    retVal = TouCAN_USB_CmdInitInterface(device->handle, device->bitRate.brp, device->bitRate.tseg1,
+                                         device->bitRate.tseg2, device->bitRate.sjw, 0x00000000U);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): device could not be initialized (%i)\n", device->name, device->handle, retVal);
         goto err_init;
@@ -214,8 +240,8 @@ CANUSB_Return_t TouCAN_USB_SetBitrate(TouCAN_Device_t *device, const TouCAN_Bitr
         return CANUSB_ERROR_NOTINIT;
 
     /* set mode flags depending on the operation mode */
-    modeFlags |= (device->opMode & CANMODE_MON) ? TouCAN_ENABLE_SILENT_MODE : 0x00000000U;
-    modeFlags |= (device->opMode & CANMODE_ERR) ? TouCAN_ENABLE_STATUS_MESSAGES : 0x00000000U;
+    modeFlags |= (device->opMode & CANMODE_MON) ? TOUCAN_ENABLE_SILENT_MODE : 0x00000000U;
+    modeFlags |= (device->opMode & CANMODE_ERR) ? TOUCAN_ENABLE_STATUS_MESSAGES : 0x00000000U;
 
     /* reset device state and pending errors */
     retVal = TouCAN_ResetDevice(device->handle);
@@ -224,12 +250,8 @@ CANUSB_Return_t TouCAN_USB_SetBitrate(TouCAN_Device_t *device, const TouCAN_Bitr
         goto end_set;
     }
     /* initialize with demanded bit-rate and mode-flags */
-    retVal = TouCAN_init(device->handle,
-                         bitrate->brp,
-                         bitrate->tseg1,
-                         bitrate->tseg2,
-                         bitrate->sjw,
-                         modeFlags);
+    retVal = TouCAN_USB_CmdInitInterface(device->handle, bitrate->brp, bitrate->tseg1,
+                                         bitrate->tseg2, bitrate->sjw, modeFlags);
     if (retVal < 0) {
         MACCAN_DEBUG_ERROR("+++ %s (device #%u): device could not be re-initialized (%i)\n", device->name, device->handle, retVal);
         goto end_set;
@@ -251,7 +273,7 @@ CANUSB_Return_t TouCAN_USB_StartCan(TouCAN_Device_t *device) {
         return CANUSB_ERROR_NOTINIT;
 
     /* enter LISTENING state */
-    retVal = TouCAN_start(device->handle);
+    retVal = TouCAN_USB_CmdStartInterface(device->handle);
 
     return retVal;
 }
@@ -266,7 +288,7 @@ CANUSB_Return_t TouCAN_USB_StopCan(TouCAN_Device_t *device) {
         return CANUSB_ERROR_NOTINIT;
 
     /* enter READY state again */
-    retVal = TouCAN_stop(device->handle);
+    retVal = TouCAN_USB_CmdStopInterface(device->handle);
 
     return retVal;
 }
@@ -336,7 +358,7 @@ CANUSB_Return_t TouCAN_USB_GetBusStatus(TouCAN_Device_t *device, TouCAN_Status_t
     tmpStatus = device->recvData.msgParam.statusByte;
     
     /* get (and clear) interface error code */
-    retVal = TouCAN_get_interface_error_code(device->handle, &errorCode);
+    retVal = TouCAN_USB_CmdGetInterfaceErrorCode(device->handle, &errorCode);
     if (retVal == CANUSB_SUCCESS) {
         // FIXME: error code is always 0 even when there are errors on the bus
 #if (0)
@@ -359,12 +381,59 @@ CANUSB_Return_t TouCAN_USB_GetBusStatus(TouCAN_Device_t *device, TouCAN_Status_t
                                    HAL_CAN_ERROR_TX_TERR2)) ? CANSTAT_TX_BUSY :0;
 #endif
     }
-    (void)TouCAN_clear_interface_error_code(device->handle);
+    (void)TouCAN_USB_CmdClearInterfaceErrorCode(device->handle);
     
     /* return updated status register */
     if (status)
         *status = tmpStatus;
     return retVal;
+}
+
+CANUSB_Return_t TouCAN_USB_SetStdFilter(TouCAN_Device_t *device, uint32_t code, uint32_t mask) {
+    CANUSB_Return_t retVal = CANUSB_ERROR_FATAL;
+
+    /* sanity check */
+    if (!device)
+        return CANUSB_ERROR_NULLPTR;
+    if (!device->configured)
+        return CANUSB_ERROR_NOTINIT;
+
+    /* set standard filter */
+    retVal = TouCAN_USB_CmdSetStandardFilter(device->handle, FILTER_VALUE, code, mask);
+
+    return retVal;
+}
+
+CANUSB_Return_t TouCAN_USB_SetXtdFilter(TouCAN_Device_t *device, uint32_t code, uint32_t mask) {
+    CANUSB_Return_t retVal = CANUSB_ERROR_FATAL;
+
+    /* sanity check */
+    if (!device)
+        return CANUSB_ERROR_NULLPTR;
+    if (!device->configured)
+        return CANUSB_ERROR_NOTINIT;
+
+    /* set extended filter */
+    retVal = TouCAN_USB_CmdSetExtendedFilter(device->handle, FILTER_VALUE, code, mask);
+
+    return retVal;
+}
+
+CANUSB_Return_t TouCAN_USB_ResetFilters(TouCAN_Device_t *device) {
+    CANUSB_Return_t retStd = CANUSB_ERROR_FATAL;
+    CANUSB_Return_t retXtd = CANUSB_ERROR_FATAL;
+
+    /* sanity check */
+    if (!device)
+        return CANUSB_ERROR_NULLPTR;
+    if (!device->configured)
+        return CANUSB_ERROR_NOTINIT;
+
+    /* reset both filters to accept all identifiers */
+    retStd = TouCAN_USB_CmdSetStandardFilter(device->handle, FILTER_ACCEPT_ALL, 0x0U, 0x0U);
+    retXtd = TouCAN_USB_CmdSetExtendedFilter(device->handle, FILTER_ACCEPT_ALL, 0x0U, 0x0U);
+
+    return (retStd != CANUSB_SUCCESS) ? retStd : retXtd;
 }
 
 bool TouCAN_USB_Index2Bitrate(int32_t index, TouCAN_Bitrate_t *bitrate) {
@@ -436,27 +505,27 @@ static int TouCAN_ResetDevice(CANUSB_Handle_t handle) {
     UInt32 error = 0;
     
     /* get device state */
-    retVal = TouCAN_get_interface_state(handle, &state);
+    retVal = TouCAN_USB_CmdGetInterfaceState(handle, &state);
     if (retVal < 0)
         return retVal;
     /* state LISTENING ==> state READY */
     if (state == (UInt8)HAL_CAN_STATE_LISTENING) {
-        retVal = TouCAN_stop(handle);
+        retVal = TouCAN_USB_CmdStopInterface(handle);
         if (retVal < 0)
             return retVal;
         /* get new device state */
-        retVal = TouCAN_get_interface_state(handle, &state);
+        retVal = TouCAN_USB_CmdGetInterfaceState(handle, &state);
         if (retVal < 0)
             return retVal;
     }
     /* state READY++ ==> state RESET */
     if (state != (UInt8)HAL_CAN_STATE_RESET) {
-        retVal = TouCAN_deinit(handle);
+        retVal = TouCAN_USB_CmdDeinitInterface(handle);
         if (retVal < 0)
             return retVal;
     }
     /* get interface error code */
-    retVal = TouCAN_get_interface_error_code(handle, &error);
+    retVal = TouCAN_USB_CmdGetInterfaceErrorCode(handle, &error);
     if (retVal < 0)
         return retVal;
     /* clear pending error(s) */
@@ -467,27 +536,27 @@ static int TouCAN_ResetDevice(CANUSB_Handle_t handle) {
          * RESET but the CAN controller is in an error state. We have first to
          * initialize the interface to reset the error and then to clear it.
          */
-        retVal = TouCAN_init(handle, 10U, 14U, 5U, 4U, 0x00000000U);
-        //fprintf(stderr, "!!! TouCAN_init returned %i\n", retVal);
+        retVal = TouCAN_USB_CmdInitInterface(handle, 10U, 14U, 5U, 4U, 0x00000000U);
+        //fprintf(stderr, "!!! TouCAN_USB_CmdInitInterface returned %i\n", retVal);
         if (retVal < 0)
             return retVal;
-        retVal = TouCAN_clear_interface_error_code(handle);
+        retVal = TouCAN_USB_CmdClearInterfaceErrorCode(handle);
         //fprintf(stderr, "!!! TouCAN_clear_interface_error_code returned %i\n", retVal);
         if (retVal < 0)
             return retVal;
         /* again get interface error code, but in any case return an error */
-        retVal = TouCAN_get_interface_error_code(handle, &error);
-        //fprintf(stderr, "!!! TouCAN_get_interface_error_code returned %i\n", retVal);
+        retVal = TouCAN_USB_CmdGetInterfaceErrorCode(handle, &error);
+        //fprintf(stderr, "!!! TouCAN_USB_CmdGetinterface_error_code returned %i\n", retVal);
         if (retVal < 0)
             return retVal;
         //fprintf(stderr, "    interface error code is 0x%x\n", error);
         if (error != (UInt32)HAL_CAN_ERROR_NONE)
             retVal = (int)TOUCAN_ERROR_OFFSET - (int)99;  // FATAL_ERROR;
         else
-            retVal = (int)TOUCAN_ERROR_OFFSET - (int)TouCAN_RETVAL_ERROR;
+            retVal = (int)TOUCAN_ERROR_OFFSET - (int)TOUCAN_RETVAL_ERROR;
         /* finally tear off all the crap */
-        (void)TouCAN_stop(handle);
-        (void)TouCAN_deinit(handle);
+        (void)TouCAN_USB_CmdStopInterface(handle);
+        (void)TouCAN_USB_CmdDeinitInterface(handle);
     }
     return retVal;
 }

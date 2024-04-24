@@ -28,6 +28,11 @@ do {
     step = "InitializeChannel"
     print(">>> \(step)(channel: \(channel), mode: \(mode))")
     try can.InitializeChannel(channel: channel, mode: mode)
+    step = "AcceptanceFilter"
+    can.filter = (0x000, 0x000)
+    if let filter = can.filter {
+        print(">>> \(step): \(filter)")
+    }
     step = "StartController"
     print(">>> \(step)(index: \(baud))")
     try can.StartController(index: baud)
