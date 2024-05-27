@@ -56,11 +56,7 @@
 /// \brief  TouCAN dynamic library
 /// \{
 #define TOUCAN_LIBRARY_ID  CANLIB_RUSOKU_LT
-#if (OPTION_CANAPI_TOUCAN_DYLIB != 0)
 #define TOUCAN_LIBRARY_NAME  CANDLL_RUSOKU_LT
-#else
-#define TOUCAN_LIBRARY_NAME  "libTouCAN.dylib"
-#endif
 #define TOUCAN_LIBRARY_VENDOR  "UV Software, Berlin"
 #define TOUCAN_LIBRARY_LICENSE  "BSD-2-Clause OR GPL-3.0-or-later"
 #define TOUCAN_LIBRARY_COPYRIGHT  "Copyright (c) 2020-2024 by Uwe Vogt, UV Software, Berlin"

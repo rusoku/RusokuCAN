@@ -61,7 +61,6 @@
 #include "can_btr.h"
 
 #include "TouCAN_Driver.h"
-#include "Version.h"
 
 #include <stdio.h>
 #include <string.h>
