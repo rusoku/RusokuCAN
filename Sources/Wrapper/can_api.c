@@ -743,27 +743,31 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_LIBRARY_VENDOR:    // vendor name of the library (char[256])
-        if ((nbyte > strlen(CAN_API_VENDOR)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, CAN_API_VENDOR);
+    case CANPROP_GET_LIBRARY_VENDOR:    // vendor name of the library (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, CAN_API_VENDOR, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_LIBRARY_DLLNAME:   // file name of the library (char[256])
-        if ((nbyte > strlen(LIB_DLLNAME)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, LIB_DLLNAME);
+    case CANPROP_GET_LIBRARY_DLLNAME:   // file name of the library (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, LIB_DLLNAME, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[256])
-        if ((nbyte > strlen(DEV_VENDOR)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, DEV_VENDOR);
+    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_VENDOR, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[256])
-        if ((nbyte > strlen(DEV_DLLNAME)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, DEV_DLLNAME);
+    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_DLLNAME, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
@@ -791,8 +795,8 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
                 rc = CANERR_RESOURCE;
         }
         break;
-    case CANPROP_GET_CHANNEL_NAME:      // get channel name at actual index in the interface list (char[256])
-        if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_CHANNEL_NAME:      // get channel name at actual index in the interface list (char[])
+        if (nbyte >= 1U) {
             if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, can_boards[idx_board].name, nbyte);
@@ -803,8 +807,8 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
                 rc = CANERR_RESOURCE;
         }
         break;
-    case CANPROP_GET_CHANNEL_DLLNAME:   // get file name of the DLL at actual index in the interface list (char[256])
-        if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_CHANNEL_DLLNAME:   // get file name of the DLL at actual index in the interface list (char[])
+        if (nbyte >= 1U) {
             if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, DEV_DLLNAME, nbyte);
@@ -826,8 +830,8 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
                 rc = CANERR_RESOURCE;
         }
         break;
-    case CANPROP_GET_CHANNEL_VENDOR_NAME: // get vendor name at actual index in the interface list (char[256])
-        if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_CHANNEL_VENDOR_NAME: // get vendor name at actual index in the interface list (char[])
+        if (nbyte >= 1U) {
             if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, DEV_VENDOR, nbyte);
@@ -839,7 +843,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         }
         break;
     case CANPROP_GET_DEVICE_TYPE:       // device type of the CAN interface (int32_t)
-    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[256])
+    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[])
     case CANPROP_GET_OP_CAPABILITY:     // supported operation modes of the CAN controller (uint8_t)
     case CANPROP_GET_OP_MODE:           // active operation mode of the CAN controller (uint8_t)
     case CANPROP_GET_BITRATE:           // active bit-rate of the CAN controller (can_bitrate_t)
@@ -904,22 +908,24 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[256])
-        if ((nbyte > strlen(can[handle].device.deviceInfo.name)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, can[handle].device.deviceInfo.name);
+    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, can[handle].device.deviceInfo.name, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[256])
-        if ((nbyte > strlen(can[handle].device.vendor)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, can[handle].device.vendor);
+    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_VENDOR, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[256])
-        if ((nbyte > strlen("(driverless)")) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[])
+        if (nbyte >= 1U) {
             strncpy((char*)value, "(driverless)", nbyte);  // note: there is no kernel driver!
-            ((char*)value)[nbyte-1] = '\0';
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
