@@ -2,7 +2,8 @@
 //
 //  CAN Tester for Rusoku TouCAN USB Adapters (CAN API V3)
 //
-//  Copyright (c) 2008-2010,2012-2024  Uwe Vogt, UV Software, Berlin (info@uv-software.com)
+//  Copyright (c) 2005-2010 Uwe Vogt, UV Software, Friedrichshafen
+//  Copyright (c) 2012-2024 Uwe Vogt, UV Software, Berlin (info@uv-software.com)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -29,8 +30,10 @@
 #endif
 #define BITRATE_800K_UNSUPPORTED  1  // set to zero if 800kbps is supported
 
-#define TESTER_INTEFACE   "Rusoku TouCAN USB Interfaces"
-#define TESTER_COPYRIGHT  "2008-2010,2012-2024 by Uwe Vogt, UV Software, Berlin"
+#define TESTER_INTERFACE  "Rusoku TouCAN USB Interfaces"
+#define TESTER_COPYRIGHT  "2005-2010,2012-2024 by Uwe Vogt, UV Software, Berlin"
+#define TESTER_PLATFORM   "Darwin"
+#define TESTER_ALIASNAME  "TOU:"
 
 #define BITRATE_1M(x)    TOUCAN_BR_1M(x)
 #define BITRATE_500K(x)  TOUCAN_BR_500K(x)

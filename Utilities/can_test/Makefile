@@ -1,7 +1,8 @@
 #
 #	CAN Tester for Rusoku TouCAN USB Interfaces (CAN API V3)
 #
-#	Copyright (c) 2008-2010,2012-2024  Uwe Vogt, UV Software, Berlin (info@uv-software.com)
+#	Copyright (c) 2008-2010  Uwe Vogt, UV Software, Friedrichshafen
+#	Copyright (c) 2012-2024  Uwe Vogt, UV Software, Berlin (info@uv-software.com)
 #
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -33,7 +34,7 @@ MAIN_DIR = ./Sources
 DRIVER_DIR = $(PROJ_DIR)/Sources
 CANAPI_DIR = $(PROJ_DIR)/Sources/CANAPI
 
-OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/Timer.o
+OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/Options.o $(OUTDIR)/Timer.o
 
 DEFINES = -DOPTION_CANAPI_DRIVER=1 \
 	-DOPTION_CANAPI_COMPANIONS=1
@@ -114,6 +115,9 @@ install:
 $(OUTDIR)/main.o: $(MAIN_DIR)/main.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
+$(OUTDIR)/Options.o: $(MAIN_DIR)/Options_p.cpp
+	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
 $(OUTDIR)/Timer.o: $(MAIN_DIR)/Timer.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
@@ -121,5 +125,7 @@ $(OUTDIR)/Timer.o: $(MAIN_DIR)/Timer.cpp
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBRARIES)
 	$(CP) $(TARGET) $(BINDIR)
+ifeq ($(current_OS),Darwin)
 	@lipo -archs $@
+endif
 	@echo "\033[1mTarget '"$@"' successfully build\033[0m"
