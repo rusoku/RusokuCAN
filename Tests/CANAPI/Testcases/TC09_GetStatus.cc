@@ -420,13 +420,14 @@ TEST_F(GetStatus, GTEST_TESTCASE(IfInBusOffState, GTEST_TC09_8_ENABLED)) {
     // @note: This test can be very fragile
     if (g_Options.RunQuick())
         GTEST_SKIP() << "This test can be very fragile!";
-#if (TC09_8_ISSUE_BUS_OFF == WORKAROUND_ENABLED)
-    ASSERT_TRUE(false) << "[  TC09.8  ] No bus-off state from device!";
-#endif
     // @note: This test cannot run if there is another device on bus!
     if (g_Options.Is3rdDevicePresent())
         GTEST_SKIP() << "This test cannot run if there is another device on bus!";
     // @pre:
+#if (TC09_8_ISSUE_BUS_OFF == WORKAROUND_ENABLED)
+    // @- issue(*): no bus-off state from device -> abort test
+    ASSERT_TRUE(false) << "[  TC09.8  ] No bus-off state from device!";
+#endif
     // @- initialize DUT1 with configured settings
     retVal = dut1.InitializeChannel();
     ASSERT_EQ(CCanApi::NoError, retVal) << "[  ERROR!  ] dut1.InitializeChannel() failed with error code " << retVal;
@@ -585,13 +586,14 @@ TEST_F(GetStatus, GTEST_TESTCASE(IfWarningLevelReached, GTEST_TC09_9_ENABLED)) {
     // @note: This test can be very fragile
     if (g_Options.RunQuick())
         GTEST_SKIP() << "This test can be very fragile!";
-#if (TC09_9_ISSUE_PCBUSB_WARNING_LEVEL == WORKAROUND_ENABLED)
-    ASSERT_TRUE(false) << "[  TC09.9  ] No warning level from device!";
-#endif
     // @note: This test cannot run if there is another device on bus!
     if (g_Options.Is3rdDevicePresent())
         GTEST_SKIP() << "This test cannot run if there is another device on bus!";
     // @pre:
+#if (TC09_9_ISSUE_PCBUSB_WARNING_LEVEL == WORKAROUND_ENABLED)
+    // @- issue(PCBUSB): no warning level from device -> abort test
+    ASSERT_TRUE(false) << "[  TC09.9  ] No warning level from device!";
+#endif
     // @- initialize DUT1 with configured settings
     retVal = dut1.InitializeChannel();
     ASSERT_EQ(CCanApi::NoError, retVal) << "[  ERROR!  ] dut1.InitializeChannel() failed with error code " << retVal;
@@ -1337,4 +1339,4 @@ TEST_F(GetStatus, GTEST_TESTCASE(IfReceiveQueueFull, GTEST_TC09_14_ENABLED)) {
     // @end.
 }
 
-//  $Id: TC09_GetStatus.cc 1300 2024-05-19 13:14:53Z quaoar $  Copyright (c) UV Software, Berlin.
+//  $Id: TC09_GetStatus.cc 1325 2024-05-28 20:48:13Z makemake $  Copyright (c) UV Software, Berlin.

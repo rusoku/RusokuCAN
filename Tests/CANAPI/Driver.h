@@ -69,8 +69,8 @@ typedef CTouCAN  CCanDriver;
 #define FEATURE_BITRATE_FD_SAM      FEATURE_UNSUPPORTED
 #define FEATURE_BITRATE_SJA1000     FEATURE_UNSUPPORTED
 #define FEATURE_FILTERING           FEATURE_SUPPORTED
-#define FEATURE_ERROR_FRAMES        FEATURE_UNSUPPORTED
-#define FEATURE_ERROR_CODE_CAPTURE  FEATURE_UNSUPPORTED
+#define FEATURE_ERROR_FRAMES        FEATURE_SUPPORTED
+#define FEATURE_ERROR_CODE_CAPTURE  FEATURE_SUPPORTED
 #define FEATURE_BLOCKING_READ       FEATURE_SUPPORTED
 #define FEATURE_BLOCKING_WRITE      FEATURE_UNSUPPORTED
 #define FEATURE_SIZE_RECEIVE_QUEUE  65536
@@ -91,15 +91,22 @@ typedef CTouCAN  CCanDriver;
 #define BITRATE_5K(x)    TOUCAN_BR_5K(x)
 
 //  (§6) define macros for workarounds (e.g. TC01_3_ISSUE)
+#if (OPTION_REGRESSION_TEST == 0)
+// #define TC04_15_ISSUE_TOUCAN_STATUS  WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
+// #define TC09_8_ISSUE_TOUCAN_STATUS   WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
+// #define TC09_9_ISSUE_TOUCAN_STATUS   WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
+// #define TC09_10_ISSUE_TOUCAN_STATUS  WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
+#define TC09_8_ISSUE_BUS_OFF  WORKAROUND_ENABLED  // 2023-08-28: test hangs up (general testcase issue)
+#endif
+//  (§6.1) old PCANBasic issues (see macros in 'Settings.h')
+#define PCBUSB_INIT_DELAY_WORKAROUND  WORKAROUND_DISABLED
+#define PCBUSB_QXMTFULL_WORKAROUND    WORKAROUND_DISABLED
+
+//  (§6.2) TouCAN USB harware issues with bit-rate 10K
 #define TC03_7_ISSUE_RUSOKU_BITRATE_10K   ISSUE_TOUCAN_BITRATE_10K_WORKAROUND
 #define TC03_19_ISSUE_RUSOKU_BITRATE_10K  ISSUE_TOUCAN_BITRATE_10K_WORKAROUND
 #define TC11_10_ISSUE_RUSOKU_BITRATE_10K  ISSUE_TOUCAN_BITRATE_10K_WORKAROUND
 #define ISSUE_TOUCAN_BITRATE_10K_WORKAROUND  1  // set to none-zero value to skip the hardware bug
-
-//#define TC09_8_ISSUE_BUS_OFF  WORKAROUND_ENABLED  // 2023-08-28: test hangs up
-//  (§6.1) old PCANBasic issues (see macros in 'Settings.h')
-#define PCBUSB_INIT_DELAY_WORKAROUND  WORKAROUND_DISABLED
-#define PCBUSB_QXMTFULL_WORKAROUND    WORKAROUND_DISABLED
 
 //  (§7) define macros for CAN 2.0 bit-rate indexes to be used in the tests
 #if (ISSUE_TOUCAN_BITRATE_10K_WORKAROUND == WORKAROUND_DISABLED)
@@ -140,7 +147,9 @@ typedef CTouCAN  CCanDriver;
 #define BITRATE_FD_125K1M(x)  TOUCAN_FD_BR_125K1M(x)
 
 //  (§11) define macros for workarounds for CAN FD operation mode (e.g. TC01_3_ISSUE_FD)
+#if (OPTION_REGRESSION_TEST == 0)
 //#define TC0x_y_ISSUE_FD_  WORKAROUND_ENABLED
+#endif
 
 //  (§12) define macros for CAN FD bit-rate settings to be used in the tests, if supported
 #define CAN_BITRATE_FD_DEFAULT  BITRATE_FD_250K2M
