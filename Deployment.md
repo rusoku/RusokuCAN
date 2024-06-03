@@ -103,7 +103,7 @@ _All rights reserved._
 
 1. Click on `Draft a new release` in the [GitHub](https://github.com/mac-can/RusokuCAN) repo.
 2. Fill out all required fields:
-  - Tag version: e.g `v0.3` (cf. semantic versioning)
+  - Tag version: e.g `v0.3.1` (cf. semantic versioning)
   - Target: `main` (default branch)
   - Release title: e.g. `Release of January 19, 2038`
   - Change-log: list all major changes, e.g. from commit comments
