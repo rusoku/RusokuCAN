@@ -92,11 +92,11 @@ typedef CTouCAN  CCanDriver;
 
 //  (§6) define macros for workarounds (e.g. TC01_3_ISSUE)
 #if (OPTION_REGRESSION_TEST == 0)
-// #define TC04_15_ISSUE_TOUCAN_STATUS  WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
-// #define TC09_8_ISSUE_TOUCAN_STATUS   WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
-// #define TC09_9_ISSUE_TOUCAN_STATUS   WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
-// #define TC09_10_ISSUE_TOUCAN_STATUS  WORKAROUND_ENABLED  // 2024-05-28: see FIXME in TouCAN_USB_GetBusStatus()
-#define TC09_8_ISSUE_BUS_OFF  WORKAROUND_ENABLED  // 2023-08-28: test hangs up (general testcase issue)
+#define TC04_15_ISSUE_TOUCAN_STATUS  WORKAROUND_ENABLED  // 2024-05-29: display only, fix for issue #32 works
+#define TC09_8_ISSUE_TOUCAN_STATUS   WORKAROUND_ENABLED  // 2024-05-29: test fails, fix for issue #32 is not stable
+#define TC09_9_ISSUE_TOUCAN_STATUS   WORKAROUND_ENABLED  // 2024-05-29: display only, fix for issue #32 works
+#define TC09_10_ISSUE_TOUCAN_STATUS  WORKAROUND_ENABLED  // 2024-05-29: test fails, fix for issue #32 is not working
+//#define TC09_8_ISSUE_BUS_OFF  WORKAROUND_ENABLED  // 2023-08-28: test hangs up (general issue)
 #endif
 //  (§6.1) old PCANBasic issues (see macros in 'Settings.h')
 #define PCBUSB_INIT_DELAY_WORKAROUND  WORKAROUND_DISABLED
