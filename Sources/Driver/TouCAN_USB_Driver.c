@@ -59,6 +59,8 @@
 #include "MacCAN_Debug.h"
 #include <inttypes.h>
 
+#define ISSUE_HAL_ERROR_CODES 1 // ICA for issue #32: Bus error states cannot be read from interface
+
 #define TOUCAN_MSG_STD_FRAME  (UInt8)0x00
 #define TOUCAN_MSG_XTD_FRAME  (UInt8)0x01
 #define TOUCAN_MSG_RTR_FRAME  (UInt8)0x02
@@ -241,8 +243,13 @@ CANUSB_Return_t TouCAN_USB_SetBitrate(TouCAN_Device_t *device, const TouCAN_Bitr
 
     /* set mode flags depending on the operation mode */
     modeFlags |= (device->opMode & CANMODE_MON) ? TOUCAN_ENABLE_SILENT_MODE : 0x00000000U;
+#ifndef ISSUE_HAL_ERROR_CODES
     modeFlags |= (device->opMode & CANMODE_ERR) ? TOUCAN_ENABLE_STATUS_MESSAGES : 0x00000000U;
-
+#else
+    // issue #32: Bus error states cannot be read from interface
+    // >workaround: enable status messages to get the bus status
+    modeFlags |= TOUCAN_ENABLE_STATUS_MESSAGES;
+#endif
     /* reset device state and pending errors */
     retVal = TouCAN_ResetDevice(device->handle);
     if (retVal < 0) {
@@ -361,7 +368,7 @@ CANUSB_Return_t TouCAN_USB_GetBusStatus(TouCAN_Device_t *device, TouCAN_Status_t
     retVal = TouCAN_USB_CmdGetInterfaceErrorCode(device->handle, &errorCode);
     if (retVal == CANUSB_SUCCESS) {
         // FIXME: error code is always 0 even when there are errors on the bus
-#if (0)
+#ifndef ISSUE_HAL_ERROR_CODES
         tmpStatus |= (errorCode & (HAL_CAN_ERROR_EWG |
                                    HAL_CAN_ERROR_EPV)) ? CANSTAT_EWRN : 0;
         tmpStatus |= (errorCode & (HAL_CAN_ERROR_BOF)) ? CANSTAT_BOFF : 0;

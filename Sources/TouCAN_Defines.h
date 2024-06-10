@@ -127,13 +127,13 @@ extern "C" {
  *  @{ */
 #define TOUCAN_LIB_ID            500    /**< library ID (CAN/COP API V1 compatible) */
 #if defined(_WIN32) || defined (_WIN64)
- #define TOUCAN_LIB_CANLIB      "(none)"
+ #define TOUCAN_LIB_CANLIB      "(driverless)"
  #define TOUCAN_LIB_WRAPPER     "u3cantou.dll"
 #elif defined(__APPLE__)
- #define TOUCAN_LIB_CANLIB      "(none)"
+ #define TOUCAN_LIB_CANLIB      "(driverless)"
  #define TOUCAN_LIB_WRAPPER     "libUVCANTOU.dylib"
 #else
-#error Platform not supported
+ #error Platform not supported
 #endif
 /** @} */
 
@@ -141,7 +141,7 @@ extern "C" {
  *  @brief More or less useful stuff
  *  @{ */
 #define TOUCAN_LIB_VENDOR       "Rusoku technologijos UAB, Lithuania"
-#define TOUCAN_LIB_WEBSITE      "www.rusoku.com"
+#define TOUCAN_LIB_WEBSITE      "https://www.rusoku.com"
 #define TOUCAN_LIB_HAZARD_NOTE  "If you connect your CAN device to a real CAN network when using this library,\n" \
                                 "you might damage your application."
 /** @} */

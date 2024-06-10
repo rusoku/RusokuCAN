@@ -71,7 +71,13 @@ OBJECTS = $(OUTDIR)/main.o $(OUTDIR)/Device.o $(OUTDIR)/Options.o \
 	$(OUTDIR)/TC23_SetFilter11Bit.o $(OUTDIR)/TC25_SetFilter29Bit.o \
 	$(OUTDIR)/TC27_ResetFilter.o \
 	$(OUTDIR)/TCx1_CallSequences.o $(OUTDIR)/TCx2_BitrateConverter.o \
-	$(OUTDIR)/Timer.o $(OUTDIR)/Progress.o
+	$(OUTDIR)/TCxX_Summary.o $(OUTDIR)/Timer.o $(OUTDIR)/Progress.o
+
+ifeq ($(REGRESSION),ON)  # disable all workarounds
+REGRESSION_TEST = 1
+else
+REGRESSION_TEST = 0
+endif
 
 ifeq ($(current_OS),Darwin)  # macOS - libTouCAN.dylib
 
@@ -79,8 +85,9 @@ TARGET	= tou_testing
 
 INSTALL = ~/bin
 
-DEFINES = -DOPTION_CAN_2_0_ONLY=0 \
-	-DOPTION_CANAPI_RETVALS=1
+DEFINES = -DOPTION_REGRESSION_TEST=$(REGRESSION_TEST) \
+	-DOPTION_CAN_2_0_ONLY=0 \
+	-DOPTION_CANAPI_RETVALS=0
 
 HEADERS = -I$(HOME_DIR) \
 	-I$(MAIN_DIR) \
@@ -188,6 +195,9 @@ $(OUTDIR)/TCx1_CallSequences.o: $(TEST_DIR)/TCx1_CallSequences.cc
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/TCx2_BitrateConverter.o: $(TEST_DIR)/TCx2_BitrateConverter.cc
+	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+
+$(OUTDIR)/TCxX_Summary.o: $(TEST_DIR)/TCxX_Summary.cc
 	$(CXX) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/main.o: $(MAIN_DIR)/main.cpp

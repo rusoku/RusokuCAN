@@ -33,8 +33,10 @@
 #endif
 #define BITRATE_800K_UNSUPPORTED  1  // set to zero if 800kbps is supported
 
-#define MONITOR_INTEFACE  "Rusoku TouCAN USB Interfaces"
+#define MONITOR_INTERFACE "Rusoku TouCAN USB Interfaces"
 #define MONITOR_COPYRIGHT "2007,2012-2024 by Uwe Vogt, UV Software, Berlin"
+#define MONITOR_PLATFORM  "Darwin"
+#define MONITOR_ALIASNAME "TOU:"
 
 #define BITRATE_1M(x)    TOUCAN_BR_1M(x)
 #define BITRATE_500K(x)  TOUCAN_BR_500K(x)

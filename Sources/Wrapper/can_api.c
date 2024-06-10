@@ -61,7 +61,6 @@
 #include "can_btr.h"
 
 #include "TouCAN_Driver.h"
-#include "Version.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -182,10 +181,11 @@ EXPORT
 int can_test(int32_t channel, uint8_t mode, const void *param, int *result)
 {
     int rc = CANERR_FATAL;              // return value
+    int i;                              // loop variable
 
     if (result)                         // the last resort
         *result = CANBRD_NOT_TESTABLE;
-    if (!init) {                        // when not initialized:
+    if (!init) {                        // if not initialized:
         var_init();                     //   initialize the variables
         // initialize the driver (MacCAN-Core driver)
         if ((rc = TouCAN_InitializeDriver()) != CANERR_NOERROR)
@@ -195,17 +195,20 @@ int can_test(int32_t channel, uint8_t mode, const void *param, int *result)
     if (!init)                          // must be initialized
         return CANERR_FATAL;
     if (!IS_HANDLE_VALID(channel))      // must be a valid channel!
-#ifndef OPTION_CANAPI_RETVALS
-        return CANERR_HANDLE;
-#else
-        // note: can_test shall return vendor-specific error code or
-        //       CANERR_NOTINIT in this case
         return CANERR_NOTINIT;
-#endif
     // probe the CAN channel and check it selected operation mode is supported by the CAN controller
     rc = TouCAN_ProbeChannel(channel, mode, result);
+    // when the music's over, turn out the light
+    for (i = 0; i < CAN_MAX_HANDLES; i++) {
+        if (can[i].device.configured)
+            break;
+    }
+    if (i == CAN_MAX_HANDLES) {
+        (void)TouCAN_TeardownDriver();
+        init = 0;
+    }
     // note: 1. parameter 'result' is checked for NULL pointer by the called function
-    //       2. error code CANERR_ILLPARA is return in case the operation mode is not supported
+    //       2. error code CANERR_ILLPARA is returned in case the mode is not supported
     (void) param;
     return (int)rc;
 }
@@ -225,13 +228,7 @@ int can_init(int32_t channel, uint8_t mode, const void *param)
     if (!init)                          // must be initialized
         return CANERR_FATAL;
     if (!IS_HANDLE_VALID(channel))      // must be a valid channel!
-#ifndef OPTION_CANAPI_RETVALS
-        return CANERR_HANDLE;
-#else
-        // note: can_init shall return vendor-specific error code or
-        //       CANERR_NOTINIT in this case
         return CANERR_NOTINIT;
-#endif
     // initialize CAN channel with selected operation mode
     if ((rc = TouCAN_InitializeChannel(channel, mode, &can[channel].device)) < CANERR_NOERROR)
         return rc;
@@ -361,7 +358,6 @@ int can_start(int handle, const can_bitrate_t *bitrate)
     can[handle].counters.rx = 0U;
     can[handle].counters.err = 0U;
     (void)CANQUE_Reset(can[handle].device.recvData.msgQueue);
-
     // start the CAN controller with the selected operation mode
     if ((rc = TouCAN_StartCan(&can[handle].device)) < CANERR_NOERROR)
         return rc;
@@ -395,7 +391,7 @@ int can_reset(int handle)
     if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     if (can[handle].status.can_stopped) // must be running
-#ifndef OPTION_CANAPI_RETVALS
+#if (OPTION_CANAPI_RETVALS == OPTION_DISABLED)
         return CANERR_OFFLINE;
 #else
         // note: can_reset shall return CANERR_NOERROR even if
@@ -444,8 +440,9 @@ int can_write(int handle, const can_message_t *message, uint16_t timeout)
     if (message->dlc > CAN_MAX_LEN)     //   data length 0 .. 8!
         return CANERR_ILLPARA;
 
-    // transmit the given CAN message (w/ or w/o acknowledgment)
+    // transmit the CAN message (w/ or w/o acknowledgment)
     rc = TouCAN_WriteMessage(&can[handle].device, message, timeout);
+    // update status and tx counter
     can[handle].status.transmitter_busy = (rc != CANUSB_SUCCESS) ? 1 : 0;
     can[handle].counters.tx += (rc == CANUSB_SUCCESS) ? 1U : 0U;
     return rc;
@@ -467,7 +464,7 @@ int can_read(int handle, can_message_t *message, uint16_t timeout)
     if (can[handle].status.can_stopped) // must be running
         return CANERR_OFFLINE;
 
-    // read one CAN message from the message queue, if any
+    // read one CAN message from message queue, if any
     rc = TouCAN_ReadMessage(&can[handle].device, message, timeout);
     can[handle].status.receiver_empty = (rc != CANUSB_SUCCESS) ? 1 : 0;
     can[handle].status.queue_overrun = CANQUE_OverflowFlag(can[handle].device.recvData.msgQueue) ? 1 : 0;
@@ -497,8 +494,7 @@ int can_status(int handle, uint8_t *status)
         // note: only bit 6 to 4 are set or cleared by the device
     }
     if (status)                         // status-register
-      *status = can[handle].status.byte;
-
+        *status = can[handle].status.byte;
     return rc;
 }
 
@@ -507,7 +503,7 @@ int can_busload(int handle, uint8_t *load, uint8_t *status)
 {
     int rc = CANERR_FATAL;              // return value
 
-    uint8_t busLoad = 0U;
+    uint8_t busLoad = 0U;               // bus-load (in [percent])
 
     if (!init)                          // must be initialized
         return CANERR_NOTINIT;
@@ -518,18 +514,19 @@ int can_busload(int handle, uint8_t *load, uint8_t *status)
 
 #if (0)
     // get bus load from device (0..10000 ==> 0%..100%)
-    if ((rc = TouCAN_GetBusLoad(&can[handle].device, &busLoad)) == CANUSB_SUCCESS) {
-        // get status-register from device
-        rc = can_status(handle, status);
-    }
-    else
-        busLoad = 0U;
     // TODO: realize bus-load measurement
 #else
-    rc = can_status(handle, status);
+    rc = can_status(handle, status);    // status-register
 #endif
-    if (load)
+    if (load)                           // bus-load (in [percent])
         *load = (uint8_t)((busLoad + 50U) / 100U);
+#if (OPTION_CANAPI_RETVALS == OPTION_DISABLED)
+    if (rc == CANERR_NOERROR)
+        rc = !can[handle].status.can_stopped ? CANERR_NOERROR : CANERR_OFFLINE;
+#else
+    // note: can_busload shall return CANERR_NOERROR if
+    //       the CAN controller has not been started
+#endif
     return rc;
 }
 
@@ -557,19 +554,20 @@ int can_bitrate(int handle, can_bitrate_t *bitrate, can_speed_t *speed)
     tmpBitrate.btr.nominal.tseg1 = can[handle].device.bitRate.tseg1;
     tmpBitrate.btr.nominal.tseg2 = can[handle].device.bitRate.tseg2;
     tmpBitrate.btr.nominal.sjw = can[handle].device.bitRate.sjw;
-	tmpBitrate.btr.nominal.sam = 0U;    // note: SAM not used by TouCAN
+    tmpBitrate.btr.nominal.sam = 0U;    // note: SAM not used by TouCAN
     // calculate bus speed from bit-rate settings
-    if ((rc = btr_bitrate2speed(&tmpBitrate, &tmpSpeed)) < CANERR_NOERROR)
+    if ((rc = btr_bitrate2speed(&tmpBitrate, &tmpSpeed)) < 0)
         return CANERR_BAUDRATE;
     if (bitrate)
         memcpy(bitrate, &tmpBitrate, sizeof(can_bitrate_t));
     if (speed)
         memcpy(speed, &tmpSpeed, sizeof(can_speed_t));
-#ifdef OPTION_CANAPI_RETVALS
-    // note: can_bitrate shall return CANERR_OFFLINE if
+#if (OPTION_CANAPI_RETVALS == OPTION_DISABLED)
+    if (rc == CANERR_NOERROR)
+        rc = !can[handle].status.can_stopped ? CANERR_NOERROR : CANERR_OFFLINE;
+#else
+    // note: can_bitrate shall return CANERR_NOERROR if
     //       the CAN controller has not been started
-    if (can[handle].status.can_stopped)
-        rc = CANERR_OFFLINE;
 #endif
     return rc;
 }
@@ -581,10 +579,8 @@ int can_property(int handle, uint16_t param, void *value, uint32_t nbyte)
         // note: library properties can be queried w/o a handle
         return lib_parameter(param, value, (size_t)nbyte);
     }
-    if (!init)                          // must be initialized
-        return CANERR_NOTINIT;
-    if (!IS_HANDLE_VALID(handle))       // must be a valid handle
-        return CANERR_HANDLE;
+    // note: library is initialized and handle is valid
+
     if (!can[handle].device.configured) // must be an open handle
         return CANERR_HANDLE;
     // note: device properties must be queried with a valid handle
@@ -594,7 +590,7 @@ int can_property(int handle, uint16_t param, void *value, uint32_t nbyte)
 EXPORT
 char *can_hardware(int handle)
 {
-    static char string[CANPROP_MAX_BUFFER_SIZE] = "(unknown)";
+    static char string[CANPROP_MAX_BUFFER_SIZE+1] = "(unknown)";
 
     if (!init)                          // must be initialized
         return NULL;
@@ -607,15 +603,17 @@ char *can_hardware(int handle)
     uint8_t major = (uint8_t)(can[handle].device.deviceInfo.hardware >> 24);
     uint8_t minor = (uint8_t)(can[handle].device.deviceInfo.hardware >> 16);
     uint8_t patch = (uint8_t)(can[handle].device.deviceInfo.hardware >> 8);
-    sprintf(string, "%s, hardware %u.%u.%u (s/n %08x)", can[handle].device.deviceInfo.name,
-            major, minor, patch, can[handle].device.deviceInfo.serialNo);
+    snprintf(string, CANPROP_MAX_BUFFER_SIZE, "%s, hardware %u.%u.%u (s/n %08x)",
+             can[handle].device.deviceInfo.name, major, minor, patch,
+             can[handle].device.deviceInfo.serialNo);
+    string[CANPROP_MAX_BUFFER_SIZE] = '\0';
     return string;
 }
 
 EXPORT
 char *can_firmware(int handle)
 {
-    static char string[CANPROP_MAX_BUFFER_SIZE] = "(unknown)";
+    static char string[CANPROP_MAX_BUFFER_SIZE+1] = "(unknown)";
 
     if (!init)                          // must be initialized
         return NULL;
@@ -628,8 +626,10 @@ char *can_firmware(int handle)
     uint8_t major = (uint8_t)(can[handle].device.deviceInfo.firmware >> 24);
     uint8_t minor = (uint8_t)(can[handle].device.deviceInfo.firmware >> 16);
     uint8_t patch = (uint8_t)(can[handle].device.deviceInfo.firmware >> 8);
-    sprintf(string, "%s, firmware %u.%u.%u (%s)", can[handle].device.deviceInfo.name,
-            major, minor, patch, can[handle].device.website);
+    snprintf(string, CANPROP_MAX_BUFFER_SIZE, "%s, firmware %u.%u.%u (%s)",
+             can[handle].device.deviceInfo.name, major, minor, patch,
+             can[handle].device.website);
+    string[CANPROP_MAX_BUFFER_SIZE] = '\0';
     return string;
 }
 
@@ -649,9 +649,6 @@ static void var_init(void)
         can[i].filter.std.mask = FILTER_STD_MASK;
         can[i].filter.xtd.code = FILTER_XTD_CODE;
         can[i].filter.xtd.mask = FILTER_XTD_MASK;
-        //can[i].error.lec = 0x00u;
-        //can[i].error.rx_err = 0u;
-        //can[i].error.tx_err = 0u;
         can[i].counters.tx = 0ull;
         can[i].counters.rx = 0ull;
         can[i].counters.err = 0ull;
@@ -744,27 +741,31 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_LIBRARY_VENDOR:    // vendor name of the library (char[256])
-        if ((nbyte > strlen(CAN_API_VENDOR)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, CAN_API_VENDOR);
+    case CANPROP_GET_LIBRARY_VENDOR:    // vendor name of the library (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, CAN_API_VENDOR, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_LIBRARY_DLLNAME:   // file name of the library (char[256])
-        if ((nbyte > strlen(LIB_DLLNAME)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, LIB_DLLNAME);
+    case CANPROP_GET_LIBRARY_DLLNAME:   // file name of the library (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, LIB_DLLNAME, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[256])
-        if ((nbyte > strlen(DEV_VENDOR)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, DEV_VENDOR);
+    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_VENDOR, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[256])
-        if ((nbyte > strlen(DEV_DLLNAME)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, DEV_DLLNAME);
+    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_DLLNAME, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
@@ -792,8 +793,8 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
                 rc = CANERR_RESOURCE;
         }
         break;
-    case CANPROP_GET_CHANNEL_NAME:      // get channel name at actual index in the interface list (char[256])
-        if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_CHANNEL_NAME:      // get channel name at actual index in the interface list (char[])
+        if (nbyte >= 1U) {
             if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, can_boards[idx_board].name, nbyte);
@@ -804,8 +805,8 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
                 rc = CANERR_RESOURCE;
         }
         break;
-    case CANPROP_GET_CHANNEL_DLLNAME:   // get file name of the DLL at actual index in the interface list (char[256])
-        if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_CHANNEL_DLLNAME:   // get file name of the DLL at actual index in the interface list (char[])
+        if (nbyte >= 1U) {
             if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, DEV_DLLNAME, nbyte);
@@ -827,8 +828,8 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
                 rc = CANERR_RESOURCE;
         }
         break;
-    case CANPROP_GET_CHANNEL_VENDOR_NAME: // get vendor name at actual index in the interface list (char[256])
-        if ((0U < nbyte) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
+    case CANPROP_GET_CHANNEL_VENDOR_NAME: // get vendor name at actual index in the interface list (char[])
+        if (nbyte >= 1U) {
             if ((0 <= idx_board) && (idx_board < NUM_CHANNELS) &&
                 (can_boards[idx_board].type != EOF)) {
                 strncpy((char*)value, DEV_VENDOR, nbyte);
@@ -840,7 +841,7 @@ static int lib_parameter(uint16_t param, void *value, size_t nbyte)
         }
         break;
     case CANPROP_GET_DEVICE_TYPE:       // device type of the CAN interface (int32_t)
-    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[256])
+    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[])
     case CANPROP_GET_OP_CAPABILITY:     // supported operation modes of the CAN controller (uint8_t)
     case CANPROP_GET_OP_MODE:           // active operation mode of the CAN controller (uint8_t)
     case CANPROP_GET_BITRATE:           // active bit-rate of the CAN controller (can_bitrate_t)
@@ -905,22 +906,24 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[256])
-        if ((nbyte > strlen(can[handle].device.deviceInfo.name)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, can[handle].device.deviceInfo.name);
+    case CANPROP_GET_DEVICE_NAME:       // device name of the CAN interface (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, can[handle].device.deviceInfo.name, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[256])
-        if ((nbyte > strlen(can[handle].device.vendor)) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strcpy((char*)value, can[handle].device.vendor);
+    case CANPROP_GET_DEVICE_VENDOR:     // vendor name of the CAN interface (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_VENDOR, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
-    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[256])
-        if ((nbyte > strlen("(driverless)")) && (nbyte <= CANPROP_MAX_BUFFER_SIZE)) {
-            strncpy((char*)value, "(driverless)", nbyte);  // note: there is no kernel driver!
-            ((char*)value)[nbyte-1] = '\0';
+    case CANPROP_GET_DEVICE_DLLNAME:    // file name of the CAN interface DLL (char[])
+        if (nbyte >= 1U) {
+            strncpy((char*)value, DEV_DLLNAME, nbyte);
+            ((char*)value)[(nbyte - 1)] = '\0';
             rc = CANERR_NOERROR;
         }
         break;
@@ -962,7 +965,7 @@ static int drv_parameter(int handle, uint16_t param, void *value, size_t nbyte)
         break;
     case CANPROP_GET_BUSLOAD:           // current bus load of the CAN controller (uint16_t)
         if (nbyte >= sizeof(uint8_t)) {
-            if ((rc = can_busload(handle, &load, NULL)) == CANERR_NOERROR) {
+            if (((rc = can_busload(handle, &load, NULL)) == CANERR_NOERROR) || (rc == CANERR_OFFLINE)) {
                 if (nbyte > sizeof(uint8_t))
                     *(uint16_t*)value = (uint16_t)load * 100U;  // 0..10000 ==> 0.00%..100.00%
                 else

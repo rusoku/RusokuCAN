@@ -1,6 +1,6 @@
 ### macOS&reg; User-Space Driver for TouCAN USB Interfaces from Rusoku
 
-_Copyright &copy; 2020-2024 Uwe Vogt, UV Software, Berlin (info@mac-can.com)_
+_Copyright &copy; 2020-2024  Uwe Vogt, UV Software, Berlin (info@mac-can.com)_
 
 ![macOS Build](https://github.com/mac-can/RusokuCAN.dylib/actions/workflows/macos-build.yml/badge.svg)
 
@@ -131,13 +131,13 @@ Type `can_test --help` to display all program options.
 
 #### macOS Sonoma
 
-- macOS Sonoma (14.4.1) on a Mac mini (M1, 2020)
+- macOS Sonoma (14.5) on a Mac mini (M1, 2020)
 - Apple clang version 15.0.0 (clang-1500.3.9.4)
-- Xcode Version 15.3 (15E204a)
+- Xcode Version 15.4 (15F31d)
 
 #### macOS Monterey
 
-- macOS Monterey (12.7.4) on a MacBook Pro (2019)
+- macOS Monterey (12.7.5) on a MacBook Pro (2019)
 - Apple clang version 13.0.0 (clang-1300.0.29.30)
 - Xcode Version 13.2.1 (13C100)
 
@@ -153,15 +153,13 @@ For a list of known bugs and caveats see tab [Issues](https://github.com/mac-can
 
 ### CAN API V3 Reference
 
-A generic documentation of the CAN API V3 application programming interface can be found [here](https://uv-software.github.io/CANAPI-Docs/#/).
+A generic documentation of the CAN API V3 application programming interface can be found [here](https://uv-software.github.io/CANAPI-Docs).
 
 ### Dual-License
 
 Except where otherwise noted, this work is dual-licensed under the terms of the BSD 2-Clause "Simplified" License
 and under the terms of the GNU General Public License v3.0 (or any later version).
 You can choose between one of them if you use these portions of this work in whole or in part.
-
-`SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-or-later`
 
 ### Trademarks
 

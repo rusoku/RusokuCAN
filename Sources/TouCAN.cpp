@@ -46,7 +46,6 @@
 //  along with MacCAN-TouCAN.  If not, see <https://www.gnu.org/licenses/>.
 //
 #include "TouCAN.h"
-#include "Version.h"
 
 #include "can_defs.h"
 #include "can_api.h"

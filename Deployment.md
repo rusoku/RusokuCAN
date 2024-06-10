@@ -30,9 +30,7 @@ _All rights reserved._
   - `$(PROJROOT)/Sources/Swift/CANAPI.swift`
   - `$(PROJROOT)/Libraries/CANAPI/Makefile`<sup>*</sup>
   - `$(PROJROOT)/Libraries/TouCAN/Makefile`<sup>*</sup>
-  - `$(PROJROOT)/Utilities/can_moni/Makefile`
   - `$(PROJROOT)/Utilities/can_moni/README.md`
-  - `$(PROJROOT)/Utilities/can_test/Makefile`
   - `$(PROJROOT)/Utilities/can_test/README.md`
 
   <sup>*</sup>_) Set variable_ `CURRENT_VERSION` _and_ `COMPATIBILITY_VERSION` _accordingly._
@@ -103,7 +101,7 @@ _All rights reserved._
 
 1. Click on `Draft a new release` in the [GitHub](https://github.com/mac-can/RusokuCAN) repo.
 2. Fill out all required fields:
-  - Tag version: e.g `v0.3` (cf. semantic versioning)
+  - Tag version: e.g `v0.3.1` (cf. semantic versioning)
   - Target: `main` (default branch)
   - Release title: e.g. `Release of January 19, 2038`
   - Change-log: list all major changes, e.g. from commit comments
